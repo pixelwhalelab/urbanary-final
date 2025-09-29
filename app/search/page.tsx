@@ -28,7 +28,7 @@ interface Venue {
   map?: string;
 }
 
-const page = () => {
+const SearchPage = () => {
   const imageSrc = "https://netzoll.design/urbanary/assets/img/rest-3.jpg";
   const avatarSrc = "https://placehold.co/500x500";
   const placeholders = [
@@ -330,4 +330,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default SearchPage;

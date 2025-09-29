@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from 'next/image';
 
 
-const Page = () => {
+const ResetPasswordPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -156,4 +156,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default ResetPasswordPage;

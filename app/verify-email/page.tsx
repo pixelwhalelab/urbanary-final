@@ -76,7 +76,7 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, onChangeOtp }) => {
   );
 };
 
-const Page = () => {
+const VerifyEmailPage = () => {
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [otp, setOtp] = useState("");
@@ -157,4 +157,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default VerifyEmailPage;

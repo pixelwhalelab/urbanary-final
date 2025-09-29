@@ -20,7 +20,12 @@ export async function POST(req: NextRequest) {
 
     const { email } = await req.json();
 
-    const bypassEmails = ["avijeetpaul100@gmail.com", "avijeetpaul@icloud.com", "james@urbanary.co.uk", "bals@fiveriversdesigns.com"];
+    const bypassEmails = [
+      "avijeetpaul100@gmail.com",
+      "avijeetpaul@icloud.com",
+      "james@urbanary.co.uk",
+      "bals@fiveriversdesigns.com",
+    ];
     if (bypassEmails.includes(email.toLowerCase())) {
       return NextResponse.json({ closePopup: true });
     }
@@ -47,11 +52,28 @@ export async function POST(req: NextRequest) {
     const parser = new UAParser(userAgent);
     const deviceInfo = parser.getResult();
 
-    let geo: Record<string, any> = {};
+    interface GeoLocation {
+      status?: string;
+      country?: string;
+      countryCode?: string;
+      region?: string;
+      regionName?: string;
+      city?: string;
+      zip?: string;
+      lat?: number;
+      lon?: number;
+      timezone?: string;
+      isp?: string;
+      org?: string;
+      as?: string;
+      query?: string;
+    }
+
+    let geo: GeoLocation = {};
     if (!isPrivate) {
       try {
         const res = await fetch(`http://ip-api.com/json/${ip}`);
-        geo = await res.json();
+        geo = (await res.json()) as GeoLocation;
       } catch (err) {
         console.error("IP Geolocation error:", err);
       }

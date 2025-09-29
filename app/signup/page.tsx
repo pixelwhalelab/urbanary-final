@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from 'next/image';
 
 
-const page = () => {
+const SignupPage = () => {
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [phone, setPhone] = useState("");
@@ -253,4 +253,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default SignupPage;

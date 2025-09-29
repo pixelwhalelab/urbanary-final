@@ -7,7 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from 'next/image';
 
 
-const page = () => {
+const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -70,4 +70,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default ForgotPasswordPage;
