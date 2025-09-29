@@ -1,27 +1,45 @@
 {
-  "name": "my-app",
-  "version": "0.1.0",
+  "name": "urbanary-phase-1",
+  "version": "1.0.0",
+  "author": "Avijeet Paul",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev --turbopack -p 16500",
+    "build": "next build --turbopack -p 16500",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie": "^1.0.2",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.2",
+    "getmac": "^1.4.4",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.542.0",
+    "luxon": "^3.7.2",
+    "mongoose": "^8.18.0",
+    "next": "15.5.2",
+    "openai": "^5.23.1",
     "react": "19.1.0",
+    "react-datepicker": "^8.7.0",
     "react-dom": "19.1.0",
-    "next": "15.5.2"
+    "react-hot-toast": "^2.6.0",
+    "ua-parser-js": "^2.0.5",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^20",
+    "@types/node-fetch": "^2.6.13",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
