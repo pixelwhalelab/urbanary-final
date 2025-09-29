@@ -7,9 +7,49 @@ const openai = new OpenAI({
 });
 
 const allowedTopics = [
-  "restaurant","restaurants","dinner","lunch","brunch","breakfast","food","meal","eat","places to eat","buffet","cafe","cafes","chinese","italian","indian","french","mexican","thai","japanese","street food","fine dining","rooftop restaurant",
-  "bar","bars","pub","lounges","nightclub","nightclubs","nightlife","club","clubs","drinks","cocktails","alcohol","beer","wine","happy hour","hookah","shisha","dance floor",
-  "casino","casinos"
+  "restaurant",
+  "restaurants",
+  "dinner",
+  "lunch",
+  "brunch",
+  "breakfast",
+  "food",
+  "meal",
+  "eat",
+  "places to eat",
+  "buffet",
+  "cafe",
+  "cafes",
+  "chinese",
+  "italian",
+  "indian",
+  "french",
+  "mexican",
+  "thai",
+  "japanese",
+  "street food",
+  "fine dining",
+  "rooftop restaurant",
+  "bar",
+  "bars",
+  "pub",
+  "lounges",
+  "nightclub",
+  "nightclubs",
+  "nightlife",
+  "club",
+  "clubs",
+  "drinks",
+  "cocktails",
+  "alcohol",
+  "beer",
+  "wine",
+  "happy hour",
+  "hookah",
+  "shisha",
+  "dance floor",
+  "casino",
+  "casinos",
 ];
 
 const categoryMapping: Record<string, string> = {
@@ -85,19 +125,25 @@ async function getGooglePlaceDetails(name: string) {
     let openStatus: string | undefined = undefined;
     if (result.opening_hours?.periods) {
       const now = DateTime.now().setZone("Europe/London");
-      const weekday = now.weekday % 7; 
+      const weekday = now.weekday % 7;
       const currentMinutes = now.hour * 60 + now.minute;
 
-      const todayPeriod = (result.opening_hours.periods as GoogleOpeningPeriod[]).find(p => p.open.day === weekday);
+      const todayPeriod = (
+        result.opening_hours.periods as GoogleOpeningPeriod[]
+      ).find((p) => p.open.day === weekday);
       if (todayPeriod) {
-        const openMinutes = parseInt(todayPeriod.open.time.slice(0,2)) * 60 + parseInt(todayPeriod.open.time.slice(2));
+        const openMinutes =
+          parseInt(todayPeriod.open.time.slice(0, 2)) * 60 +
+          parseInt(todayPeriod.open.time.slice(2));
         const closeMinutes = todayPeriod.close
-          ? parseInt(todayPeriod.close.time.slice(0,2)) * 60 + parseInt(todayPeriod.close.time.slice(2))
+          ? parseInt(todayPeriod.close.time.slice(0, 2)) * 60 +
+            parseInt(todayPeriod.close.time.slice(2))
           : undefined;
 
         if (closeMinutes !== undefined) {
           if (currentMinutes >= closeMinutes) openStatus = "Closed";
-          else if (currentMinutes >= closeMinutes - 30) openStatus = "Closing soon";
+          else if (currentMinutes >= closeMinutes - 30)
+            openStatus = "Closing soon";
           else openStatus = "Open";
         } else {
           openStatus = "Open";
@@ -110,13 +156,18 @@ async function getGooglePlaceDetails(name: string) {
       phone: result.formatted_phone_number,
       website: result.website,
       openStatus,
-      pricing: result.price_level !== undefined ? "£".repeat(result.price_level) : undefined,
+      pricing:
+        result.price_level !== undefined
+          ? "£".repeat(result.price_level)
+          : undefined,
       category,
       image,
       logo: result.icon,
       rating: result.rating,
       reviews: result.user_ratings_total,
-      map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${result.formatted_address}`)}`,
+      map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${name}, ${result.formatted_address}`
+      )}`,
     };
   } catch (err) {
     console.error("Google Places API error:", err);
@@ -129,9 +180,10 @@ export async function POST(req: NextRequest) {
     const { message } = await req.json();
     const messageLower = message.toLowerCase();
 
-    if (!allowedTopics.some(topic => messageLower.includes(topic))) {
+    if (!allowedTopics.some((topic) => messageLower.includes(topic))) {
       return NextResponse.json({
-        reply: "Hi there! I can help you find the best spots in Leeds—restaurants, bars, casinos, and more!",
+        reply:
+          "Hi there! I can help you find the best spots in Leeds—restaurants, bars, casinos, and more!",
         venues: [],
       });
     }
@@ -192,18 +244,21 @@ User message: "${message}"
 
     if (!venues.length) {
       return NextResponse.json({
-        reply: "Oh no! I couldn't find any spots matching your search in Leeds. Try another search?",
+        reply:
+          "Oh no! I couldn't find any spots matching your search in Leeds. Try another search?",
         venues: [],
       });
     }
 
-const introParagraph = "Here's a handpicked selection of top spots in Leeds I reckon you’ll love—food, drinks, and a bit of fun!";
+    const introParagraph =
+      "Here's a handpicked selection of top spots in Leeds I reckon you'll love—food, drinks, and a bit of fun!";
 
     return NextResponse.json({ reply: introParagraph, venues });
   } catch (err) {
     console.error("Unexpected error:", err);
     return NextResponse.json({
-      reply: "Sorry mate, something went wrong. Give it another go in a minute!",
+      reply:
+        "Sorry mate, something went wrong. Give it another go in a minute!",
       venues: [],
     });
   }
