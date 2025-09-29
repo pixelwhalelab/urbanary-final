@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Phone, MapPin, Heart, Star, BadgeCheck, CupSoda } from "lucide-react";
+import Image from 'next/image';
 
 const UrbanaryTestimonials = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);

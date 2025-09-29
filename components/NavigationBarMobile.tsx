@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, X } from "lucide-react";
 import Link from "next/link";
+import Image from 'next/image';
 
 interface NavigationBarMobileProps {
   isOpen: boolean;

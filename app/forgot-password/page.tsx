@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 import NavigationBarMobile from "@/components/NavigationBarMobile";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Eye, EyeOff } from "lucide-react";
+import Image from 'next/image';
+
 
 const page = () => {
   const [email, setEmail] = useState("");

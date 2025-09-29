@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { MapPin, CircleUserRound, Search, Menu, X } from "lucide-react";
 import NavigationBarMobile from "./NavigationBarMobile";
 import Link from "next/link";
+import Image from 'next/image';
+
 
 const NavigationHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);

@@ -2,6 +2,8 @@
 import { useState, useRef } from "react";
 import Footer from "@/components/Footer";
 import NavigationHeader from "@/components/NavigationHeader";
+import Image from 'next/image';
+
 
 interface OtpInputProps {
   length?: number;

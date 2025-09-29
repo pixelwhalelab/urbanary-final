@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Image from 'next/image';
 
 const UrbanaryTestimonials = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);

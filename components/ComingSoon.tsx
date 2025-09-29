@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { Loader } from "lucide-react";
+import Image from 'next/image';
 
 const ComingSoon = () => {
   const [email, setEmail] = useState("");

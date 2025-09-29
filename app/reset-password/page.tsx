@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Eye, EyeOff } from "lucide-react";
+import Image from 'next/image';
+
 
 const Page = () => {
   const [password, setPassword] = useState("");
