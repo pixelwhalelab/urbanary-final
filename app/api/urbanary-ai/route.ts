@@ -197,7 +197,7 @@ User message: "${message}"
       });
     }
 
-const introParagraph = "Here’s a handpicked selection of top spots in Leeds I reckon you’ll love—food, drinks, and a bit of fun!";
+const introParagraph = "Here's a handpicked selection of top spots in Leeds I reckon you’ll love—food, drinks, and a bit of fun!";
 
     return NextResponse.json({ reply: introParagraph, venues });
   } catch (err) {
