@@ -251,7 +251,7 @@ User message: "${message}"
     }
 
     const introParagraph =
-      "Here's a handpicked selection of top spots in Leeds I reckon you'll love—food, drinks, and a bit of fun!";
+      "Here&apos;s a handpicked selection of top spots in Leeds I reckon you&apos;ll love—food, drinks, and a bit of fun!";
 
     return NextResponse.json({ reply: introParagraph, venues });
   } catch (err) {
