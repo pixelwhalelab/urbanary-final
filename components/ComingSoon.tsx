@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { Loader } from "lucide-react";
-import Image from 'next/image';
+import { Loader, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
 
 const ComingSoon = () => {
   const [email, setEmail] = useState("");
@@ -116,6 +116,75 @@ const ComingSoon = () => {
           Everyone who signs up will receive early access. Your email will only
           be used for launch updates and kept strictly confidential.
         </p>
+        <div className="flex space-x-3 mx-auto items-center justify-center mt-3">
+          <button
+            onClick={() =>
+              window.open(
+                "https://www.facebook.com/profile.php?id=61579643593745",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="p-2 rounded-full bg-[#383b3f] hover:bg-white transition-colors duration-400 inline-flex cursor-pointer"
+          >
+            <Facebook
+              strokeWidth={2}
+              className="text-white hover:text-urbanary transition-colors duration-400 w-5 h-5"
+            />
+          </button>
+
+          <button
+            onClick={() =>
+              window.open(
+                "https://www.instagram.com/urbanaryleeds/",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="p-2 rounded-full bg-[#383b3f] hover:bg-white transition-colors duration-400 inline-flex cursor-pointer"
+          >
+            <Instagram
+              strokeWidth={2}
+              className="text-white hover:text-urbanary transition-colors duration-400 w-5 h-5"
+            />
+          </button>
+
+          <button
+            onClick={() =>
+              window.open(
+                "https://www.tiktok.com/@urbanaryleeds",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="p-2 rounded-full bg-[#383b3f] hover:bg-white transition-colors duration-400 inline-flex cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 448 512"
+              className="text-white hover:text-urbanary transition-colors duration-400 w-5 h-5"
+              fill="currentColor"
+            >
+              <path d="M448,209.9a210,210,0,0,1-122.77-39.28v130.4a115.63,115.63,0,1,1-99-114.25v84.43a30.31,30.31,0,1,0,24,29.74V0h90.46a121.41,121.41,0,0,0,2.1,22.17A121,121,0,0,0,448,122.41Z" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() =>
+              window.open(
+                "https://www.linkedin.com/company/urbanary/",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="p-2 rounded-full bg-[#383b3f] hover:bg-white transition-colors duration-400 inline-flex cursor-pointer"
+          >
+            <Linkedin
+              strokeWidth={2}
+              className="text-white hover:text-urbanary transition-colors duration-400 w-5 h-5"
+            />
+          </button>
+        </div>
       </div>
     </div>
   );
