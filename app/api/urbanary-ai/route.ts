@@ -1,176 +1,99 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
-import { DateTime } from "luxon";
-
-const openai = new OpenAI({
-  apiKey: process.env.GPT5_KEY,
-});
 
 const allowedTopics = [
-  "restaurant",
-  "restaurants",
-  "dinner",
-  "lunch",
-  "brunch",
-  "breakfast",
-  "food",
-  "meal",
-  "eat",
-  "places to eat",
-  "buffet",
-  "cafe",
-  "cafes",
-  "chinese",
-  "italian",
-  "indian",
-  "french",
-  "mexican",
-  "thai",
-  "japanese",
-  "street food",
-  "fine dining",
-  "rooftop restaurant",
-  "bar",
-  "bars",
-  "pub",
-  "lounges",
-  "nightclub",
-  "nightclubs",
-  "nightlife",
-  "club",
-  "clubs",
-  "drinks",
-  "cocktails",
-  "alcohol",
-  "beer",
-  "wine",
-  "happy hour",
-  "hookah",
-  "shisha",
-  "dance floor",
-  "casino",
-  "casinos",
+  "restaurant","restaurants","dinner","lunch","brunch","breakfast","food",
+  "meal","eat","places to eat","buffet","cafe","cafes","chinese","italian",
+  "indian","french","mexican","thai","japanese","street food","fine dining",
+  "rooftop restaurant","bar","bars","pub","lounges","nightclub","nightclubs",
+  "nightlife","club","clubs","drinks","cocktails","alcohol","beer","wine",
+  "happy hour","hookah","shisha","dance floor","casino","casinos",
 ];
-
-const categoryMapping: Record<string, string> = {
-  restaurant: "restaurant",
-  bar: "bar",
-  cafe: "cafe",
-  nightclub: "nightclub",
-  pub: "bar",
-  bakery: "cafe",
-  food: "restaurant",
-  meal_takeaway: "restaurant",
-  fast_food: "restaurant",
-  park: "activity",
-  museum: "activity",
-  tourist_attraction: "activity",
-  shopping_mall: "activity",
-  movie_theater: "activity",
-  bowling_alley: "activity",
-  night_club: "nightclub",
-  casino: "casino",
-  default: "other",
-};
-
-interface AIVenue {
-  name: string;
-  description?: string;
-  category?: string;
-}
 
 interface Venue {
   name: string;
   description: string;
-  image: string;
+  image?: string;
   logo?: string;
   pricing?: string;
   openStatus?: string;
-  category?: string;
+  category?: string; 
   phone?: string;
   rating?: number;
   reviews?: number;
   map?: string;
 }
 
-interface GoogleOpeningPeriod {
-  open: { day: number; time: string };
-  close?: { day: number; time: string };
+interface GoogleSearchResult {
+  place_id: string;
+  name: string;
+  [key: string]: any;
 }
 
-async function getGooglePlaceDetails(name: string) {
+function formatCategory(types: string[] | undefined): string | undefined {
+  if (!types || types.length === 0) return undefined;
+
+  const filtered = types.filter(t => !["establishment","point_of_interest"].includes(t));
+  if (filtered.length === 0) return undefined;
+
+  const main = filtered[0];
+  const othersCount = filtered.length - 1;
+
+  return othersCount > 0 ? `${capitalize(main)} +${othersCount}` : capitalize(main);
+}
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function generateFriendlyDescription(venueName: string): string {
+  const templates = [
+    `Step into ${venueName} for an unforgettable experience. Discover flavors, vibes, and moments you’ll love!`,
+    `${venueName} is the perfect spot to relax and enjoy. Great atmosphere, amazing food, and memorable times await!`,
+    `Looking for a top spot? ${venueName} has you covered with delicious offerings and a welcoming environment.`,
+    `${venueName} brings a fantastic experience to Leeds. Come for the taste, stay for the vibes!`,
+    `Experience the best at ${venueName}! Delicious food, great drinks, and a friendly atmosphere all in one.`,
+  ];
+
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function getPriceRange(priceLevel: number | undefined): string | undefined {
+  if (priceLevel === undefined) return undefined;
+  const symbols = ["", "£", "££", "£££", "££££"];
+  return symbols[priceLevel] || undefined;
+}
+
+async function getPlaceDetails(placeId: string): Promise<Venue | null> {
   try {
-    const query = encodeURIComponent(`${name} Leeds, UK`);
-    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&region=uk&key=${process.env.GOOGLE_MAPS_API_KEY}`;
-    const searchRes = await fetch(searchUrl);
-    const searchData = await searchRes.json();
-    if (!searchData.results?.length) return null;
-
-    const place = searchData.results[0];
-    const placeId = place.place_id;
-
     const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,photos,types,icon&key=${process.env.GOOGLE_MAPS_API_KEY}`;
     const detailsRes = await fetch(detailsUrl);
-    const detailsData = await detailsRes.json();
-    const result = detailsData.result;
+    const result = (await detailsRes.json()).result;
 
     const photoRef = result.photos?.[0]?.photo_reference;
     const image = photoRef
       ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${photoRef}&key=${process.env.GOOGLE_MAPS_API_KEY}`
-      : "/fallback.jpg";
-
-    const type = result.types?.[0] || "default";
-    const category = categoryMapping[type] || categoryMapping["default"];
+      : undefined;
 
     let openStatus: string | undefined = undefined;
-    if (result.opening_hours?.periods) {
-      const now = DateTime.now().setZone("Europe/London");
-      const weekday = now.weekday % 7;
-      const currentMinutes = now.hour * 60 + now.minute;
-
-      const todayPeriod = (
-        result.opening_hours.periods as GoogleOpeningPeriod[]
-      ).find((p) => p.open.day === weekday);
-      if (todayPeriod) {
-        const openMinutes =
-          parseInt(todayPeriod.open.time.slice(0, 2)) * 60 +
-          parseInt(todayPeriod.open.time.slice(2));
-        const closeMinutes = todayPeriod.close
-          ? parseInt(todayPeriod.close.time.slice(0, 2)) * 60 +
-            parseInt(todayPeriod.close.time.slice(2))
-          : undefined;
-
-        if (closeMinutes !== undefined) {
-          if (currentMinutes >= closeMinutes) openStatus = "Closed";
-          else if (currentMinutes >= closeMinutes - 30)
-            openStatus = "Closing soon";
-          else openStatus = "Open";
-        } else {
-          openStatus = "Open";
-        }
-      }
+    if (result.opening_hours?.open_now !== undefined) {
+      openStatus = result.opening_hours.open_now ? "Open" : "Closed";
     }
 
     return {
-      address: result.formatted_address,
-      phone: result.formatted_phone_number,
-      website: result.website,
-      openStatus,
-      pricing:
-        result.price_level !== undefined
-          ? "£".repeat(result.price_level)
-          : undefined,
-      category,
+      name: result.name,
+      description: generateFriendlyDescription(result.name),
+      category: formatCategory(result.types),
       image,
       logo: result.icon,
+      pricing: getPriceRange(result.price_level),
+      openStatus,
+      phone: result.formatted_phone_number,
       rating: result.rating,
       reviews: result.user_ratings_total,
-      map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${name}, ${result.formatted_address}`
-      )}`,
+      map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${result.name}, ${result.formatted_address}`)}`,
     };
   } catch (err) {
-    console.error("Google Places API error:", err);
+    console.error("Error fetching place details:", err);
     return null;
   }
 }
@@ -180,85 +103,48 @@ export async function POST(req: NextRequest) {
     const { message } = await req.json();
     const messageLower = message.toLowerCase();
 
-    if (!allowedTopics.some((topic) => messageLower.includes(topic))) {
+    if (!allowedTopics.some(topic => messageLower.includes(topic))) {
       return NextResponse.json({
-        reply:
-          "Hi there! I can help you find the best spots in Leeds—restaurants, bars, casinos, and more!",
+        reply: "Hi! I can help you find top spots in Leeds—restaurants, bars, pubs, and more!",
         venues: [],
       });
     }
 
-    const prompt = `
-You are a Leeds local guide. Suggest venues in Leeds city.
-Return ONLY a JSON array, no extra text or HTML.
-Each venue must include:
-- name
-- description (one-line)
-- category (choose from: restaurant, bar, cafe, nightclub, casino, activity, other)
-Example:
-[
-  { "name": "Dishoom Leeds", "description": "Lively Bombay-style restaurant with great curries.", "category": "restaurant" },
-  { "name": "Whitelocks Ale House", "description": "Historic bar with a wide selection of ales.", "category": "bar" }
-]
-User message: "${message}"
-`;
+    const keywords = allowedTopics.filter(topic => messageLower.includes(topic));
+    const queryString = keywords.length > 0 ? keywords.join(" ") : "restaurants";
+    const query = encodeURIComponent(`${queryString} Leeds, UK`);
 
-    const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5-mini",
-      messages: [{ role: "user", content: prompt }],
-    });
+    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&region=uk&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+    const searchRes = await fetch(searchUrl);
+    const searchData: { results: GoogleSearchResult[] } = await searchRes.json();
 
-    const rawText = aiResponse.choices?.[0]?.message?.content ?? "";
-    console.log("Raw AI response:", rawText);
-
-    let aiVenues: AIVenue[] = [];
-    try {
-      const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-      if (jsonMatch) aiVenues = JSON.parse(jsonMatch[0]);
-      else console.warn("No JSON array found in AI response.");
-    } catch (err) {
-      console.error("Failed to parse AI JSON:", err, "Raw text:", rawText);
+    if (!searchData.results?.length) {
+      return NextResponse.json({ reply: "No spots found.", venues: [] });
     }
 
-    const venues = (
+    const venues: Venue[] = (
       await Promise.all(
-        aiVenues.map(async (v) => {
-          const details = await getGooglePlaceDetails(v.name);
-          if (!details) return null;
-          return {
-            name: v.name,
-            description: v.description || "",
-            image: details.image,
-            logo: details.logo,
-            pricing: details.pricing,
-            openStatus: details.openStatus,
-            category: v.category || details.category,
-            phone: details.phone,
-            rating: details.rating,
-            reviews: details.reviews,
-            map: details.map,
-          };
-        })
+        searchData.results.map(place => getPlaceDetails(place.place_id))
       )
     ).filter(Boolean) as Venue[];
 
-    if (!venues.length) {
-      return NextResponse.json({
-        reply:
-          "Oh no! I couldn't find any spots matching your search in Leeds. Try another search?",
-        venues: [],
-      });
-    }
+    const sortedVenues = venues.sort((a, b) => {
+      if (a.openStatus === "Open" && b.openStatus !== "Open") return -1;
+      if (a.openStatus !== "Open" && b.openStatus === "Open") return 1;
 
-    const introParagraph =
-      "Here's a handpicked selection of top spots in Leeds I reckon you'll love—food, drinks, and a bit of fun!";
+      const ratingA = a.rating || 0;
+      const ratingB = b.rating || 0;
+      return ratingB - ratingA;
+    });
 
-    return NextResponse.json({ reply: introParagraph, venues });
+    return NextResponse.json({
+      reply: "Here are some top spots in Leeds based on your search:",
+      venues: sortedVenues,
+    });
   } catch (err) {
     console.error("Unexpected error:", err);
     return NextResponse.json({
-      reply:
-        "Sorry mate, something went wrong. Give it another go in a minute!",
+      reply: "Something went wrong. Please try again later.",
       venues: [],
     });
   }
