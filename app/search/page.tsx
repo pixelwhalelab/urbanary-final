@@ -29,7 +29,7 @@ interface Venue {
 }
 
 const SearchPage = () => {
-  const imageSrc = "https://netzoll.design/urbanary/assets/img/rest-3.jpg";
+  const imageSrc = "./assets/default.jpg";
   const avatarSrc = "https://placehold.co/500x500";
   const placeholders = [
     "Best places to eat in Leeds",
