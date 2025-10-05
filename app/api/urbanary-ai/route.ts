@@ -84,60 +84,86 @@ function detectTypeFromQuery(query: string): {
   boostAdventure?: boolean;
 } {
   const q = query.toLowerCase();
-  if (/bar|pub|cocktail|beer|wine|whiskey|rum|vodka|club|nightclub|night life|speakeasy|lounge|sports bar|late night/.test(q))
+
+  if (/bar|bars|pub|pubs|cocktail|beer|wine|whiskey|rum|vodka|club|nightclub|night life|speakeasy|lounge|sports bar|late night/.test(q))
     return { type: "bar", locationModifier: detectLocalArea(q) };
-  if (/restaurant|food|eat|dining|brunch|breakfast|lunch|dinner|buffet|street food|fine dining|cheap eats/.test(q))
+
+  if (/restaurant|restaurants|food|eat|dining|brunch|breakfast|lunch|dinner|buffet|street food|fine dining|cheap eats/.test(q))
     return { type: "restaurant", locationModifier: detectLocalArea(q) };
+
   if (/vegan|vegetarian|gluten[- ]free|plant based|organic|dairy free|halal|kosher|healthy food/.test(q))
     return {
       type: "restaurant",
       locationModifier: detectLocalArea(q),
       strictKeywords: ["vegan","vegetarian","gluten-free","gluten free","plant based","organic","dairy free","halal","kosher","healthy"]
     };
-  if (/cafe|coffee|espresso|tea|breakfast cafe|brunch cafe/.test(q))
+
+  if (/cafe|cafes|coffee|espresso|tea|breakfast cafe|brunch cafe/.test(q))
     return { type: "cafe", locationModifier: detectLocalArea(q) };
-  if (/theatre|theater|cinema|movie|performance|concert|live music|gig|opera|jazz|show|play/.test(q))
+
+  if (/theatre|theater|theatres|theaters|cinema|cinemas|movie|movies|performance|performances|concert|concerts|live music|gig|gigs|opera|jazz|show|plays/.test(q))
     return { type: "movie_theater", locationModifier: detectLocalArea(q) };
-  if (/museum|gallery|art|exhibition/.test(q))
+
+  if (/museum|museums|gallery|galleries|art|exhibition|exhibitions/.test(q))
     return { type: "museum", locationModifier: detectLocalArea(q) };
-  if (/park|garden|walk|hike|trail|canal|riverside|nature/.test(q))
+
+  if (/park|parks|garden|gardens|walk|walks|hike|hikes|trail|trails|canal|canals|riverside|nature/.test(q))
     return { type: "park", locationModifier: detectLocalArea(q) };
-  if (/casino|gambling|poker|slots/.test(q))
+
+  if (/casino|casinos|gambling|poker|slots/.test(q))
     return { type: "casino", locationModifier: detectLocalArea(q) };
-  if (/hotel|stay|lodging|bnb|bed and breakfast|accommodation|hostel/.test(q))
+
+  if (/hotel|hotels|stay|lodging|bnb|bed and breakfast|accommodation|hostel/.test(q))
     return { type: "lodging", locationModifier: detectLocalArea(q) };
-  if (/helicopter|air tour|hot air balloon|adventure|sightseeing flight|zipline|rafting|kayak|river cruise|trek|hiking tour|climbing/.test(q))
+
+  if (/helicopter|helicopters|air tour|air tours|hot air balloon|adventure|sightseeing flight|zipline|rafting|kayak|river cruise|trek|hiking tour|climbing/.test(q))
     return { type: "tourist_attraction", locationModifier: detectLocalArea(q), boostAdventure: true };
-  if (/shopping|mall|plaza|boutique|store/.test(q))
+
+  if (/shopping|mall|malls|plaza|boutique|store|stores/.test(q))
     return { type: "shopping_mall", locationModifier: detectLocalArea(q) };
-  if (/supermarket|grocery|milk|convenience|corner shop/.test(q))
+
+  if (/supermarket|supermarkets|grocery|milk|convenience|corner shop|shops/.test(q))
     return { type: "supermarket", locationModifier: detectLocalArea(q) };
-  if (/butcher|meat shop|beef|chicken|pork|lamb|fishmongers|seafood/.test(q))
+
+  if (/butcher|butchers|meat shop|beef|chicken|pork|lamb|fishmongers|seafood/.test(q))
     return { type: "supermarket", locationModifier: detectLocalArea(q), strictKeywords: ["butcher","meat","beef","chicken","pork","lamb","fish","seafood"] };
+
   if (/sports store|sporting goods|hiking gear|outdoor shop|climbing gear|bike shop/.test(q))
     return { type: "shopping_mall", locationModifier: detectLocalArea(q), strictKeywords: ["sports","hiking","outdoor","climbing","bike"] };
-  if (/spa|massage|wellness|sauna/.test(q))
+
+  if (/spa|spas|massage|wellness|sauna/.test(q))
     return { type: "spa", locationModifier: detectLocalArea(q) };
-  if (/gym|fitness|workout|yoga/.test(q))
+
+  if (/gym|gyms|fitness|workout|yoga/.test(q))
     return { type: "gym", locationModifier: detectLocalArea(q) };
-  if (/stadium|arena|sports ground|football|rugby|cricket/.test(q))
+
+  if (/stadium|stadiums|arena|arenas|sports ground|football|rugby|cricket/.test(q))
     return { type: "stadium", locationModifier: detectLocalArea(q) };
-  if (/music venue|concert hall|gig|live music|festival/.test(q))
+
+  if (/music venue|concert hall|gig|gigs|live music|festival|festivals/.test(q))
     return { type: "night_club", locationModifier: detectLocalArea(q) };
-  if (/university|college/.test(q))
+
+  if (/university|universities|college|colleges/.test(q))
     return { type: "university", locationModifier: detectLocalArea(q) };
-  if (/library/.test(q))
+
+  if (/library|libraries/.test(q))
     return { type: "library", locationModifier: detectLocalArea(q) };
-  if (/train station|bus station|coach station/.test(q))
+
+  if (/train station|train stations|bus station|bus stations|coach station|coach stations/.test(q))
     return { type: "transit_station", locationModifier: detectLocalArea(q) };
-  if (/airport/.test(q))
+
+  if (/airport|airports/.test(q))
     return { type: "airport", locationModifier: detectLocalArea(q) };
-  if (/parking|car park/.test(q))
+
+  if (/parking|car park|car parks/.test(q))
     return { type: "parking", locationModifier: detectLocalArea(q) };
-  if (/currency exchange|foreign exchange|forex|money changer|bureau de change|bank|atm|western union|money transfer|paypal|revolut|cash app/.test(q))
+
+  if (/currency exchange|foreign exchange|forex|money changer|bureau de change|bank|banks|atm|western union|money transfer|paypal|revolut|cash app/.test(q))
     return { type: "bank", locationModifier: detectLocalArea(q) };
-  if (/church|mosque|temple|cathedral/.test(q))
+
+  if (/church|churches|mosque|mosques|temple|temples|cathedral|cathedrals/.test(q))
     return { type: "place_of_worship", locationModifier: detectLocalArea(q) };
+
   return { type: "restaurant", locationModifier: detectLocalArea(q) };
 }
 
