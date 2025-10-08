@@ -268,23 +268,18 @@ function splitIntoSteps(query: string): string[] {
     "|"
   );
 
-  let steps = normalized
+  const steps = normalized
     .split("|")
     .map((s) => s.trim())
     .filter((s) => s.length > 3);
 
-  const finalSteps: string[] = [];
-  for (let step of steps) {
-    finalSteps.push(
-      ...step
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0)
-    );
-  }
+  const meaningfulSteps = steps
+    .map(step => step.replace(/\bI['’]?m \d+ years old\b/gi, '').trim())
+    .filter(step => step.length > 0); 
 
-  return finalSteps;
+  return meaningfulSteps;
 }
+
 
 function normalizeText(text: string): string {
   return text
@@ -363,10 +358,27 @@ async function extractCategoriesHybrid(step: string): Promise<string[]> {
 
 function generateParagraph(stepText: string): string {
   const cleanStep = stepText
-    .replace(/^(I want to|I'm planning to|I would like to)\s+/i, "")
+    .replace(/^(I want to|I'm planning to|I would like to|I want|I'm looking to)\s+/i, "")
     .trim();
-  return `You should check out ${cleanStep}. It's a great experience worth your time.`;
+
+  if (!cleanStep) return "";
+
+  const templates = [
+    `If you're up for it, don't miss ${cleanStep}.\nIt's a must-see and perfect for making memories!`,
+    `You should definitely check out ${cleanStep}.\nYou'll find a lot of charm and fun waiting for you!`,
+    `For a great time, head over to ${cleanStep}.\nYou won't regret stopping by this spot!`,
+    `A visit to ${cleanStep} is highly recommended.\nIt's one of the highlights of the area that locals love!`,
+    `Make sure to stop by ${cleanStep}.\nEnjoy the atmosphere and try something unique while you're there!`,
+    `Why not explore ${cleanStep}?\nIt's full of surprises and great for a fun outing!`,
+    `Don't forget to visit ${cleanStep}.\nThis place is loved by both travelers and locals alike!`,
+    `Looking for something fun? ${cleanStep} is the place to be.\nPerfect for a relaxed and memorable experience!`
+  ];
+
+  const paragraph = templates[Math.floor(Math.random() * templates.length)];
+
+  return paragraph;
 }
+
 
 function cleanSessionCache() {
   const now = Date.now();
