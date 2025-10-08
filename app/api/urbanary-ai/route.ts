@@ -207,12 +207,12 @@ function isSupermarketRelevant(place: GoogleSearchResult, strictKeywords?: strin
 
 async function getPlaceDetails(placeId: string): Promise<Venue | null> {
   try {
-    const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,photos,types,icon&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+    const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,photos,types,icon&key=${process.env.GOOGLE_PLACES_API_KEY}`;
     const detailsRes = await fetch(detailsUrl);
     const result = (await detailsRes.json()).result;
     if (!result) return null;
     const photoRef = result.photos?.[0]?.photo_reference;
-    const image = photoRef ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${photoRef}&key=${process.env.GOOGLE_MAPS_API_KEY}` : undefined;
+    const image = photoRef ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${photoRef}&key=${process.env.GOOGLE_PLACES_API_KEY}` : undefined;
     let openStatus: string | undefined;
     if (result.opening_hours?.open_now !== undefined) openStatus = result.opening_hours.open_now ? "Open" : "Closed";
     return {
@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
     const { message } = await req.json();
     const { type, locationModifier, strictKeywords, boostAdventure } = detectTypeFromQuery(message);
     const query = encodeURIComponent(`${message} ${locationModifier || "Leeds, UK"}`);
-    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&region=uk&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&region=uk&key=${process.env.GOOGLE_PLACES_API_KEY}`;
     const searchRes = await fetch(searchUrl);
     const searchData: { results: GoogleSearchResult[] } = await searchRes.json();
     if (!searchData.results?.length) return NextResponse.json({ reply: "Sorry, I couldn't find anything matching your search. Try another experience or location in Leeds!", venues: [] });
