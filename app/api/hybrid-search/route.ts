@@ -274,12 +274,11 @@ function splitIntoSteps(query: string): string[] {
     .filter((s) => s.length > 3);
 
   const meaningfulSteps = steps
-    .map(step => step.replace(/\bI['’]?m \d+ years old\b/gi, '').trim())
-    .filter(step => step.length > 0); 
+    .map((step) => step.replace(/\bI['’]?m \d+ years old\b/gi, "").trim())
+    .filter((step) => step.length > 0);
 
   return meaningfulSteps;
 }
-
 
 function normalizeText(text: string): string {
   return text
@@ -358,27 +357,41 @@ async function extractCategoriesHybrid(step: string): Promise<string[]> {
 
 function generateParagraph(stepText: string): string {
   const cleanStep = stepText
-    .replace(/^(I want to|I'm planning to|I would like to|I want|I'm looking to)\s+/i, "")
+    .replace(
+      /^(I want to|I'm planning to|I would like to|I want|I'm looking to)\s+/i,
+      ""
+    )
     .trim();
 
   if (!cleanStep) return "";
 
-  const templates = [
-    `If you're up for it, don't miss ${cleanStep}.\nIt's a must-see and perfect for making memories!`,
-    `You should definitely check out ${cleanStep}.\nYou'll find a lot of charm and fun waiting for you!`,
-    `For a great time, head over to ${cleanStep}.\nYou won't regret stopping by this spot!`,
-    `A visit to ${cleanStep} is highly recommended.\nIt's one of the highlights of the area that locals love!`,
-    `Make sure to stop by ${cleanStep}.\nEnjoy the atmosphere and try something unique while you're there!`,
-    `Why not explore ${cleanStep}?\nIt's full of surprises and great for a fun outing!`,
-    `Don't forget to visit ${cleanStep}.\nThis place is loved by both travelers and locals alike!`,
-    `Looking for something fun? ${cleanStep} is the place to be.\nPerfect for a relaxed and memorable experience!`
+  const intros = [
+    "That sounds like a great plan —",
+    "You can’t go wrong with",
+    "If you’re into good vibes, definitely try",
+    "For something memorable, go for",
+    "It’s always a good idea to check out",
+    "A solid pick would be",
+    "Locals love",
+    "A fun option could be",
+    "If that’s your vibe, you’ll enjoy",
   ];
 
-  const paragraph = templates[Math.floor(Math.random() * templates.length)];
+  const outros = [
+    "It’s got a great atmosphere and plenty to enjoy!",
+    "Perfect for making memories with your group.",
+    "Expect a mix of fun, flavour, and good energy.",
+    "You’ll find it’s got the right mix of comfort and charm.",
+    "People say it’s one of the best ways to spend your time around here.",
+    "It’s a nice balance of relaxed and lively — worth a visit.",
+    "A great way to experience something local and different!",
+  ];
 
-  return paragraph;
+  const intro = intros[Math.floor(Math.random() * intros.length)];
+  const outro = outros[Math.floor(Math.random() * outros.length)];
+
+  return `${intro} ${cleanStep}. ${outro}`;
 }
-
 
 function cleanSessionCache() {
   const now = Date.now();
