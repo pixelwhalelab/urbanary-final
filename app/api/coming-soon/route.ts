@@ -14,7 +14,6 @@ function isPrivateIP(ip: string) {
   );
 }
 
-// Send email using Mailtrap API
 async function sendMailtrapEmail(to: string, subject: string, html: string) {
   try {
     const response = await fetch("https://send.api.mailtrap.io/api/send", {
@@ -110,7 +109,6 @@ export async function POST(req: NextRequest) {
       geo = { city: "private", regionName: "private", country: "private" };
     }
 
-    // Save to database
     await ComingSoonData.create({
       email,
       ip,
@@ -121,7 +119,6 @@ export async function POST(req: NextRequest) {
       isPrivate,
     });
 
-    // HTML Email template
     const html = `<!doctype html>
 <html>
   <head>
@@ -151,7 +148,6 @@ export async function POST(req: NextRequest) {
   </body>
 </html>`;
 
-    // Send welcome email
     await sendMailtrapEmail(email, "You're on the Urbanary waitlist!", html);
 
     return NextResponse.json({ success: true, closePopup: false });
