@@ -297,12 +297,14 @@ function extractCategoriesFast(step: string): string[] {
     }
   }
 
-  for (const cat of allCategories) {
-    const normalizedCat = normalizeText(cat);
-    if (normalizeText(step).includes(normalizedCat)) {
-      found.add(cat);
-    }
+ for (const cat of allCategories) {
+  const normalizedCat = normalizeText(cat);
+  const pattern = new RegExp(`\\b${normalizedCat}\\b`, "i");
+  if (pattern.test(normalizeText(step))) {
+    found.add(cat);
   }
+}
+
 
   return Array.from(found);
 }
