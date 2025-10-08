@@ -334,7 +334,13 @@ async function extractCategoriesByGPT(step: string): Promise<string[]> {
       max_tokens: 200,
     });
     const text = res.choices[0]?.message?.content?.trim();
-    if (text) JSON.parse(text).forEach((c: string) => found.add(c));
+    if (text) {
+      try {
+        JSON.parse(text).forEach((c: string) => found.add(c));
+      } catch (e) {
+        console.error("Failed to parse GPT output:", text, e);
+      }
+    }
   } catch (e) {
     console.error(e);
   }
@@ -434,35 +440,60 @@ export async function POST(req: NextRequest) {
 
     const steps: StepResult[] = await Promise.all(
       stepsText.map(async (stepText, idx) => {
-        const categories = await extractCategoriesHybrid(stepText);
-        const paragraph = generateParagraph(stepText);
+        try {
+          let categories: string[] = [];
+          try {
+            categories = await extractCategoriesHybrid(stepText);
+          } catch (e) {
+            console.error("Category extraction failed for step:", stepText, e);
+            categories = ["Unidentified"];
+          }
 
-        let venues: GooglePlaceResultOutput[] = [];
-        if (categories.includes("Unidentified")) {
-          const results = await searchGooglePlacesLeeds(stepText, 6);
-          venues = results.map((r: GooglePlaceResult) => ({
-            name: r.name,
-            description: generateFriendlyDescription(r.name),
-            category: formatCategory(r.types),
-            image: getPhotoUrl(r.photos?.[0]?.photo_reference) || null,
-            logo: r.icon,
-            pricing: getPriceRange(r.price_level),
-            openStatus: r.opening_hours?.open_now ? "Open" : "Closed",
-            phone: r.formatted_phone_number || null,
-            rating: r.rating || null,
-            reviews: r.user_ratings_total || null,
-            map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              `${r.name}, ${r.formatted_address}`
-            )}`,
-          }));
+          const paragraph = generateParagraph(stepText);
+
+          let venues: GooglePlaceResultOutput[] = [];
+          if (categories.includes("Unidentified")) {
+            try {
+              const results = await searchGooglePlacesLeeds(stepText, 6);
+              venues = results.map((r: GooglePlaceResult) => ({
+                name: r.name,
+                description: generateFriendlyDescription(r.name),
+                category: formatCategory(r.types),
+                image: getPhotoUrl(r.photos?.[0]?.photo_reference) || null,
+                logo: r.icon,
+                pricing: getPriceRange(r.price_level),
+                openStatus: r.opening_hours?.open_now ? "Open" : "Closed",
+                phone: r.formatted_phone_number || null,
+                rating: r.rating || null,
+                reviews: r.user_ratings_total || null,
+                map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  `${r.name}, ${r.formatted_address}`
+                )}`,
+              }));
+            } catch (e) {
+              console.error(
+                "Google Places lookup failed for step:",
+                stepText,
+                e
+              );
+              venues = [];
+            }
+          }
+
+          return {
+            intent: `Visit ${idx + 1}`,
+            paragraph,
+            categories,
+            ...(venues.length ? { venues } : {}),
+          };
+        } catch (e) {
+          console.error("Step processing failed for:", stepText, e);
+          return {
+            intent: `Visit ${idx + 1}`,
+            paragraph: "Error processing step",
+            categories: ["Unidentified"],
+          };
         }
-
-        return {
-          intent: `Visit ${idx + 1}`,
-          paragraph,
-          categories,
-          ...(venues.length ? { venues } : {}),
-        };
       })
     );
 
