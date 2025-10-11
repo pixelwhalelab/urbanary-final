@@ -13,6 +13,7 @@ import {
   BadgeCheck,
   CupSoda,
 } from "lucide-react";
+import ComingSoon from "@/components/ComingSoon";
 
 interface Venue {
   name: string;
@@ -99,6 +100,7 @@ const SearchPage = () => {
   return (
     <>
       {/* Header */}
+      <ComingSoon />
       <NavigationHeader />
 
       {/* Body */}
