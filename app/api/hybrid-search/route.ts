@@ -97,7 +97,6 @@ const allCategories = [
   "Hidden Bar",
   "VIP Club",
   "Nightclub",
-  "Gentlemen’s Club",
   "Late Night Lounge",
   "Brewery Taproom",
   "Distillery Bar",
@@ -141,7 +140,6 @@ const allCategories = [
   "Launch Party",
   "Speed Dating",
   "Singles Night",
-  "Live DJ Night",
   "Brunch Party",
   "Bottomless Brunch",
   "Themed Event",
@@ -170,7 +168,6 @@ const allCategories = [
   "DJ Set",
   "Chill Lounge",
   "Upbeat",
-  "Party Mashup",
   "Date Night",
   "First Date",
   "Romantic",
@@ -184,10 +181,8 @@ const allCategories = [
   "Budget Friendly",
   "Luxury",
   "Something A Little Different",
-  "Hidden Gem",
   "Viral Spot",
   "New Opening",
-  "Trending",
   "Area",
   "Neighbourhood",
   "City",
@@ -199,7 +194,6 @@ const allCategories = [
   "Formal",
   "No Sportswear",
   "No Hoodies",
-  "Themed Costume",
   "Outdoor Seating",
   "Rooftop Terrace",
   "Heated Terrace",
@@ -242,42 +236,148 @@ const allCategories = [
   "Independent Venue",
   "Heritage Venue",
 ];
+
 const synonymMap: Record<string, string[]> = {
   pizza: ["Pizza Place"],
   burger: ["Burger Joint"],
   coffee: ["Coffee Shop", "Café"],
+  cappuccino: ["Coffee Shop", "Café"],
+  tea: ["Café", "Tea House"],
   pub: ["Pub", "Gastropub"],
+  bar: ["Cocktail Bar", "Wine Bar", "Rooftop Bar", "Party Bar"],
   rooftop: ["Rooftop Bar", "Rooftop Terrace", "Rooftop Restaurant"],
   cocktail: ["Cocktail Bar"],
   wine: ["Wine Bar"],
-  dog: ["Pet Friendly"],
+  whisky: ["Whisky Bar"],
+  rum: ["Rum Bar"],
+  gin: ["Gin Bar"],
+  dog: ["Pet Friendly", "Dog Friendly"],
   brunch: ["Brunch Spot", "Bottomless Brunch"],
-  music: ["Live Music Bar", "Live DJ Night", "DJ Set", "Live Band"],
-  spa: ["Spa"],
+  breakfast: ["Café", "Brunch Spot"],
+  streetfood: ["Street Food", "Food Market", "Food Hall"],
+  dessert: ["Dessert Bar", "Bakery", "Ice Cream Parlour", "Gelato Shop"],
+  icecream: ["Ice Cream Parlour", "Gelato Shop", "Dessert Bar"],
+  vegan: ["Vegan"],
+  vegetarian: ["Vegetarian"],
+  halal: ["Halal"],
+  steak: ["Steakhouse"],
+  seafood: ["Seafood"],
+  tapas: ["Tapas Bar"],
+  pubgrub: ["Pub Grub", "Gastropub"],
+  late: ["Late-Night Eats", "Nightclub", "Late Night Lounge"],
+  nightclub: ["Nightclub", "Party Bar"],
+  speakeasy: ["Speakeasy", "Cocktail Bar"],
+  lounge: ["Lounge Bar", "VIP Club"],
+  shisha: ["Shisha Lounge"],
+  music: [
+    "Live Music Bar",
+    "Live DJ Night",
+    "DJ Set",
+    "Live Band",
+    "Jazz",
+    "Pop",
+    "Rock",
+    "Indie",
+    "Hip Hop",
+    "Afrobeats",
+    "Chart Hits",
+    "Soul",
+    "Funk",
+  ],
+  jazz: ["Jazz"],
   arcade: ["Arcade"],
   bowling: ["Bowling"],
   karaoke: ["Karaoke Bar"],
-  dance: ["Dance Class", "DJ Set"],
-  art: ["Art Class"],
+  dance: ["Dance Class", "DJ Set", "Dance Floor"],
+  art: ["Art Class", "Art"],
   pottery: ["Pottery Class"],
+  yoga: ["Yoga Class", "Wellness Experience"],
+  spa: ["Spa", "Wellness Experience", "Hot Tub Experience"],
+  cooking: ["Cooking Class", "Culinary Experience"],
+  wine_tasting: ["Wine Tasting"],
+  cocktail_masterclass: ["Cocktail Masterclass"],
+  theatre: ["Theatre Show", "Theatre"],
+  comedy: ["Comedy Show", "Comedy"],
+  cinema: ["Cinema", "Outdoor Cinema", "Film"],
+  boat: ["Boat Party"],
+  festival: [
+    "Summer Festival",
+    "Street Party",
+    "Food Festival",
+    "Cultural Festival",
+  ],
+  birthday: ["Birthday Party"],
+  hen: ["Hen Party"],
+  stag: ["Stag Party"],
+  corporate: ["Corporate Event"],
+  private: ["Private Hire"],
+  networking: ["Networking Event", "After-Work Drinks"],
+  singles: ["Singles Night", "Speed Dating"],
+  brunchparty: ["Brunch Party", "Bottomless Brunch"],
+  seasonal: ["Seasonal Party", "Halloween", "Christmas", "New Year’s Eve"],
+  party: [
+    "Bottomless Brunch",
+    "Themed Event",
+    "Seasonal Party",
+    "VIP Club",
+    "Nightclub",
+    "Party Bar",
+  ],
+  chill: ["Chill Lounge", "Casual", "Casual Meetup"],
+  luxury: ["Luxury", "Fine Dining"],
+  casual: ["Casual Dining", "Casual Meetup", "Walk-ins Welcome"],
+  formal: ["Formal", "Dress To Impress", "Smart Casual"],
+  outdoor: [
+    "Outdoor Seating",
+    "Rooftop Terrace",
+    "Heated Terrace",
+    "Garden Area",
+    "Street Side Tables",
+  ],
+  private_room: ["Private Rooms"],
+  stage: ["Stage"],
+  pets: ["Pet Friendly", "Dog Friendly"],
+  wifi: ["Free Wi-Fi"],
+  day: ["Daytime", "All Day", "Weekend", "Weekday"],
+  evening: ["Evening", "Late Night"],
+  vip: ["VIP Package", "VIP Club", "Guest List"],
+  bengali: ["Bengali Restaurant"],
+  indian: ["Indian Restaurant"],
+  chinese: ["Chinese Restaurant"],
+  italian: ["Italian Restaurant"],
+  mexican: ["Mexican Restaurant"],
+  japanese: ["Japanese Restaurant"],
+  takeaway: ["Takeaway", "Street Food"],
+  hidden: ["Hidden Gem", "Hidden Bar"],
+  trending: ["Trending", "Viral Spot", "New Opening"],
+  area: ["Area", "Neighbourhood", "City", "Region", "Near Me"],
+  live: ["Live Music Bar", "Live DJ Night", "Live Band"],
+  boardgames: ["Board Games", "Quiz Night"],
+  darts: ["Darts"],
+  pool: ["Pool & Snooker"],
+  mini_golf: ["Mini Golf"],
+  immersive: ["Immersive Experience", "Virtual Reality", "Escape Room"],
 };
 
 function splitIntoSteps(query: string): string[] {
-  const normalized = query.replace(
-    /\b(then|after that|and finally|followed by|next|also|;|&)\b/gi,
-    "|"
-  );
-
-  const steps = normalized
+  const normalized = query
+    .replace(
+      /\b(then|after that|and finally|followed by|next|also|;|&)\b/gi,
+      "|"
+    )
+    .replace(/\.\s+/g, "|");
+  return normalized
     .split("|")
     .map((s) => s.trim())
-    .filter((s) => s.length > 3);
-
-  const meaningfulSteps = steps
-    .map((step) => step.replace(/\bI['’]?m \d+ years old\b/gi, "").trim())
-    .filter((step) => step.length > 0);
-
-  return meaningfulSteps;
+    .filter((s) => s.length > 3)
+    .filter((s) => !/I['’]?m \d+ years? old/i.test(s))
+    .filter((s) =>
+      /breakfast|lunch|dinner|coffee|cappuccino|bar|restaurant|bengali|pub|café|wine|cocktail|rooftop|halal|dog/i.test(
+        s
+      )
+    )
+    .map((s) => s.replace(/\bI['’]?m \d+ years old\b/gi, "").trim())
+    .filter(Boolean);
 }
 
 function normalizeText(text: string): string {
@@ -289,23 +389,11 @@ function normalizeText(text: string): string {
 
 function extractCategoriesFast(step: string): string[] {
   const found = new Set<string>();
-  const stepWords = normalizeText(step).split(/\W+/).filter(Boolean);
-
+  const normalizedStep = normalizeText(step);
   for (const [syn, cats] of Object.entries(synonymMap)) {
-    if (stepWords.includes(syn.toLowerCase())) {
-      cats.forEach((c) => found.add(c));
-    }
+    const pattern = new RegExp(`\\b${syn.replace("_", " ")}\\b`, "i");
+    if (pattern.test(normalizedStep)) cats.forEach((c) => found.add(c));
   }
-
- for (const cat of allCategories) {
-  const normalizedCat = normalizeText(cat);
-  const pattern = new RegExp(`\\b${normalizedCat}\\b`, "i");
-  if (pattern.test(normalizeText(step))) {
-    found.add(cat);
-  }
-}
-
-
   return Array.from(found);
 }
 
@@ -333,28 +421,22 @@ async function extractCategoriesByGPT(step: string): Promise<string[]> {
     if (text) {
       try {
         JSON.parse(text).forEach((c: string) => found.add(c));
-      } catch (e) {
-        console.error("Failed to parse GPT output:", text, e);
-      }
+      } catch (e) {}
     }
-  } catch (e) {
-    console.error(e);
-  }
+  } catch (e) {}
   return Array.from(found);
 }
 
 async function extractCategoriesHybrid(step: string): Promise<string[]> {
-  const cats = extractCategoriesFast(step);
-
-  let finalCats = [...cats];
+  const finalCats = extractCategoriesFast(step);
+  const allowedCats = finalCats.filter((c) => allCategories.includes(c));
+  if (allowedCats.length > 0) return allowedCats;
   if (finalCats.length === 0) {
     const aiCats = await extractCategoriesByGPT(step);
-    finalCats = aiCats.filter((c) => allCategories.includes(c));
+    const allowedAiCats = aiCats.filter((c) => allCategories.includes(c));
+    if (allowedAiCats.length > 0) return allowedAiCats;
   }
-
-  if (finalCats.length === 0) finalCats.push("Unidentified");
-
-  return finalCats;
+  return ["Unidentified"];
 }
 
 function generateParagraph(stepText: string): string {
@@ -364,9 +446,7 @@ function generateParagraph(stepText: string): string {
       ""
     )
     .trim();
-
   if (!cleanStep) return "";
-
   const intros = [
     "That sounds like a great plan —",
     "You can’t go wrong with",
@@ -378,7 +458,6 @@ function generateParagraph(stepText: string): string {
     "A fun option could be",
     "If that’s your vibe, you’ll enjoy",
   ];
-
   const outros = [
     "It’s got a great atmosphere and plenty to enjoy!",
     "Perfect for making memories with your group.",
@@ -388,11 +467,9 @@ function generateParagraph(stepText: string): string {
     "It’s a nice balance of relaxed and lively — worth a visit.",
     "A great way to experience something local and different!",
   ];
-
-  const intro = intros[Math.floor(Math.random() * intros.length)];
-  const outro = outros[Math.floor(Math.random() * outros.length)];
-
-  return `${intro} ${cleanStep}. ${outro}`;
+  return `${intros[Math.floor(Math.random() * intros.length)]} ${cleanStep}. ${
+    outros[Math.floor(Math.random() * outros.length)]
+  }`;
 }
 
 function cleanSessionCache() {
@@ -410,17 +487,16 @@ async function searchGooglePlacesLeeds(
   const cached = googleCache[key];
   if (cached && Date.now() - cached.timestamp < GOOGLE_CACHE_TTL)
     return cached.results;
-
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  const leedsLat = 53.8008;
+  const leedsLng = -1.5491;
+  const radius = 10000;
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
     query
-  )}+Leeds+UK&key=${apiKey}&type=restaurant`;
+  )}&location=${leedsLat},${leedsLng}&radius=${radius}&key=${apiKey}&type=restaurant`;
   const res = await fetch(url);
   const data = await res.json();
-  const results: GooglePlaceResult[] = (data.results || []).slice(
-    0,
-    maxResults
-  );
+  const results = (data.results || []).slice(0, maxResults);
   googleCache[key] = { timestamp: Date.now(), results };
   return results;
 }
@@ -450,9 +526,7 @@ export async function POST(req: NextRequest) {
         { error: "Missing query or sessionId" },
         { status: 400 }
       );
-
     cleanSessionCache();
-
     const cacheKey = `${sessionId}:${query.toLowerCase()}`;
     const cached = sessionCache[cacheKey];
     if (cached)
@@ -463,69 +537,139 @@ export async function POST(req: NextRequest) {
         cached: true,
       });
 
-    const stepsText = splitIntoSteps(query);
+    const unnecessaryPhrases = [
+      "go to office",
+      "head to",
+      "visit",
+      "proceed to",
+      "go to",
+      "stop by",
+      "make your way to",
+      "then",
+      "after that",
+      "next",
+      "finally",
+      "and",
+      "also",
+      "at the",
+      "in the",
+      "on the",
+    ];
 
+    const skipGoogleCategories = new Set([
+      "Restaurant",
+      "Fine Dining",
+      "Casual Dining",
+      "Street Food",
+      "Brunch Spot",
+      "Café",
+      "Coffee Shop",
+      "Bakery",
+      "Dessert Bar",
+      "Vegan",
+      "Vegetarian",
+      "Halal",
+      "Steakhouse",
+      "Seafood",
+      "Burger Joint",
+      "Pizza Place",
+      "Tapas Bar",
+      "Pub Grub",
+      "Gastropub",
+      "Food Market",
+      "Rooftop Restaurant",
+      "Hidden Gem",
+      "Food Hall",
+      "Takeaway",
+      "Late-Night Eats",
+      "Cocktail Bar",
+      "Wine Bar",
+      "Pub",
+      "Party Bar",
+      "Rooftop Bar",
+      "Lounge Bar",
+      "Tiki Bar",
+      "Sports Bar",
+      "Whisky Bar",
+      "Rum Bar",
+      "Gin Bar",
+      "Shisha Lounge",
+      "Live Music Bar",
+    ]);
+
+    let stepsText = splitIntoSteps(query);
+    if (stepsText.length === 0) {
+      stepsText = [query];
+    }
     const steps: StepResult[] = await Promise.all(
       stepsText.map(async (stepText, idx) => {
+        let cleanedText = stepText.toLowerCase();
+        for (const phrase of unnecessaryPhrases) {
+          const regex = new RegExp(`\\b${phrase}\\b,?\\s*`, "gi");
+          cleanedText = cleanedText.replace(regex, "");
+        }
+        cleanedText = cleanedText.trim();
+
+        let categories: string[];
         try {
-          let categories: string[] = [];
+          categories = await extractCategoriesHybrid(cleanedText);
+        } catch {
+          categories = ["Unidentified"];
+        }
+
+        const hasRestaurantCategory = categories.some((c) =>
+          skipGoogleCategories.has(c.trim())
+        );
+
+        let venues: GooglePlaceResultOutput[] | undefined = undefined;
+
+        if (!hasRestaurantCategory) {
           try {
-            categories = await extractCategoriesHybrid(stepText);
-          } catch (e) {
-            console.error("Category extraction failed for step:", stepText, e);
-            categories = ["Unidentified"];
-          }
-
-          const paragraph = generateParagraph(stepText);
-
-          let venues: GooglePlaceResultOutput[] = [];
-          if (categories.includes("Unidentified")) {
-            try {
-              const results = await searchGooglePlacesLeeds(stepText, 6);
-              venues = results.map((r: GooglePlaceResult) => ({
+            const results = await searchGooglePlacesLeeds(cleanedText, 6);
+            if (results.length > 0) {
+              venues = results.map((r) => ({
                 name: r.name,
                 description: generateFriendlyDescription(r.name),
                 category: formatCategory(r.types),
-                image: getPhotoUrl(r.photos?.[0]?.photo_reference) || null,
-                logo: r.icon,
+                image: r.photos?.[0]?.photo_reference
+                  ? getPhotoUrl(r.photos[0].photo_reference)
+                  : null,
+                logo: r.icon ?? undefined,
                 pricing: getPriceRange(r.price_level),
                 openStatus: r.opening_hours?.open_now ? "Open" : "Closed",
-                phone: r.formatted_phone_number || null,
-                rating: r.rating || null,
-                reviews: r.user_ratings_total || null,
+                phone: r.formatted_phone_number ?? undefined,
+                rating: r.rating ?? null,
+                reviews: r.user_ratings_total ?? null,
                 map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                   `${r.name}, ${r.formatted_address}`
                 )}`,
               }));
-            } catch (e) {
-              console.error(
-                "Google Places lookup failed for step:",
-                stepText,
-                e
-              );
-              venues = [];
             }
-          }
-
-          return {
-            intent: `Visit ${idx + 1}`,
-            paragraph,
-            categories,
-            ...(venues.length ? { venues } : {}),
-          };
-        } catch (e) {
-          console.error("Step processing failed for:", stepText, e);
-          return {
-            intent: `Visit ${idx + 1}`,
-            paragraph: "Error processing step",
-            categories: ["Unidentified"],
-          };
+          } catch {}
         }
+
+        let paragraph: string;
+
+        if (venues && venues.length > 0) {
+          paragraph = generateParagraph(cleanedText);
+        } else if (categories && categories[0] !== "Unidentified") {
+          paragraph = `You might be interested in ${categories.join(
+            ", "
+          )}, but we couldn't find a venue for this step.`;
+        } else {
+          paragraph = "Sorry, no venues found.";
+        }
+
+        return {
+          intent: `Visit ${idx + 1}`,
+          paragraph,
+          categories,
+          ...(venues ? { venues } : {}),
+        };
       })
     );
 
     sessionCache[cacheKey] = { timestamp: Date.now(), steps };
-
     return NextResponse.json({
       success: true,
       input: query,
@@ -533,7 +677,6 @@ export async function POST(req: NextRequest) {
       cached: false,
     });
   } catch (err) {
-    console.error(err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
