@@ -155,7 +155,7 @@ const allCategories = [
   "Techno",
   "Hip Hop",
   "Afrobeats",
-  "bistro",
+  "Bistro",
   "Reggaeton",
   "Pop",
   "Chart Hits",
@@ -230,6 +230,9 @@ const allCategories = [
   "Film",
   "Literature",
   "LGBTQ+",
+  "Gay Bar",
+  "Queer Bar",
+  "Drag Show",
   "Cultural Experience",
   "Sustainability",
   "Local Produce",
@@ -244,7 +247,7 @@ const synonymMap: Record<string, string[]> = {
   cappuccino: ["Coffee Shop", "Café"],
   tea: ["Café", "Tea House"],
   pub: ["Pub", "Gastropub"],
-  bar: ["Cocktail Bar", "Wine Bar", "Rooftop Bar", "Party Bar"],
+  bar: ["Cocktail Bar", "Wine Bar", "Rooftop Bar", "Party Bar", "Gay Bar", "Queer Bar"],
   rooftop: ["Rooftop Bar", "Rooftop Terrace", "Rooftop Restaurant"],
   cocktail: ["Cocktail Bar"],
   wine: ["Wine Bar"],
@@ -267,7 +270,7 @@ const synonymMap: Record<string, string[]> = {
   late: ["Late-Night Eats", "Nightclub", "Late Night Lounge"],
   nightclub: ["Nightclub", "Party Bar"],
   speakeasy: ["Speakeasy", "Cocktail Bar"],
-  lounge: ["Lounge Bar", "VIP Club"],
+  lounge: ["Lounge Bar", "VIP Club", "Gay Bar", "Queer Bar"],
   shisha: ["Shisha Lounge"],
   music: [
     "Live Music Bar",
@@ -322,6 +325,9 @@ const synonymMap: Record<string, string[]> = {
     "VIP Club",
     "Nightclub",
     "Party Bar",
+    "Gay Bar",
+    "Queer Bar",
+    "Drag Show",
   ],
   chill: ["Chill Lounge", "Casual", "Casual Meetup"],
   luxury: ["Luxury", "Fine Dining"],
@@ -357,6 +363,7 @@ const synonymMap: Record<string, string[]> = {
   pool: ["Pool & Snooker"],
   mini_golf: ["Mini Golf"],
   immersive: ["Immersive Experience", "Virtual Reality", "Escape Room"],
+  lgbtq: ["LGBTQ+", "Gay Bar", "Queer Bar", "Drag Show"],
 };
 
 function splitIntoSteps(query: string): string[] {
@@ -493,7 +500,8 @@ async function searchGooglePlacesLeeds(
   const radius = 10000;
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
     query
-  )}&location=${leedsLat},${leedsLng}&radius=${radius}&key=${apiKey}&type=restaurant`;
+  )}&location=${leedsLat},${leedsLng}&radius=${radius}&key=${apiKey}`;
+  console.log("Google Places API URL:", url);
   const res = await fetch(url);
   const data = await res.json();
   const results = (data.results || []).slice(0, maxResults);
@@ -569,6 +577,7 @@ export async function POST(req: NextRequest) {
       "Vegan",
       "Vegetarian",
       "Halal",
+      "Gay Bar",
       "Steakhouse",
       "Seafood",
       "Burger Joint",
