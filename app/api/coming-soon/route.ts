@@ -170,9 +170,7 @@ export async function POST(req: NextRequest) {
                 <table role="presentation">
                   <tr>
                     <td style="background:#ffffff;border-radius:14px;padding:10px 14px;">
-                      <a href="https://www.urbanary.co.uk" target="_blank" rel="noopener">
                         <img src="https://www.urbanary.co.uk/logo/49962.png" width="220" alt="Urbanary" style="width:220px;height:auto;">
-                      </a>
                     </td>
                   </tr>
                 </table>
@@ -197,14 +195,7 @@ export async function POST(req: NextRequest) {
               </td>
             </tr>
 
-            <!-- CTA -->
-            <tr>
-              <td align="center" style="padding:18px 28px 8px 28px;">
-                <a href="https://www.urbanary.co.uk" target="_blank" rel="noopener" class="btn">
-                  Visit Urbanary
-                </a>
-              </td>
-            </tr>
+           
 
             <!-- Sign-off -->
             <tr>
