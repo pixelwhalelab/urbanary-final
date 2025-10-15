@@ -27,6 +27,7 @@
     "react-datepicker": "^8.7.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",
+    "string-similarity": "^4.0.4",
     "ua-parser-js": "^2.0.5",
     "uuid": "^11.1.0"
   },
@@ -38,6 +39,7 @@
     "@types/node-fetch": "^2.6.13",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/string-similarity": "^4.0.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "tailwindcss": "^4",
