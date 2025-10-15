@@ -164,6 +164,7 @@ const allCategories = [
   "Jazz",
   "Soul",
   "Funk",
+  "DJ",
   "Live Band",
   "DJ Set",
   "Chill Lounge",
@@ -240,152 +241,29 @@ const allCategories = [
   "Heritage Venue",
 ];
 
-const synonymMap: Record<string, string[]> = {
-  pizza: ["Pizza Place"],
-  burger: ["Burger Joint"],
-  coffee: ["Coffee Shop", "Café"],
-  cappuccino: ["Coffee Shop", "Café"],
-  tea: ["Café", "Tea House"],
-  pub: ["Pub", "Gastropub"],
-  bar: ["Cocktail Bar", "Wine Bar", "Rooftop Bar", "Party Bar", "Gay Bar", "Queer Bar"],
-  rooftop: ["Rooftop Bar", "Rooftop Terrace", "Rooftop Restaurant"],
-  cocktail: ["Cocktail Bar"],
-  wine: ["Wine Bar"],
-  whisky: ["Whisky Bar"],
-  rum: ["Rum Bar"],
-  gin: ["Gin Bar"],
-  dog: ["Pet Friendly", "Dog Friendly", "Cat Friendly"],
-  cat: ["Pet Friendly", "Cat Friendly"],
-  brunch: ["Brunch Spot", "Bottomless Brunch"],
-  breakfast: ["Café", "Brunch Spot"],
-  streetfood: ["Street Food", "Food Market", "Food Hall"],
-  dessert: ["Dessert Bar", "Bakery", "Ice Cream Parlour", "Gelato Shop"],
-  icecream: ["Ice Cream Parlour", "Gelato Shop", "Dessert Bar"],
-  vegan: ["Vegan"],
-  vegetarian: ["Vegetarian"],
-  halal: ["Halal"],
-  steak: ["Steakhouse"],
-  seafood: ["Seafood"],
-  tapas: ["Tapas Bar"],
-  pubgrub: ["Pub Grub", "Gastropub"],
-  late: ["Late-Night Eats", "Nightclub", "Late Night Lounge"],
-  nightclub: ["Nightclub", "Party Bar"],
-  speakeasy: ["Speakeasy", "Cocktail Bar"],
-  lounge: ["Lounge Bar", "VIP Club", "Gay Bar", "Queer Bar"],
-  shisha: ["Shisha Lounge"],
-  music: [
-    "Live Music Bar",
-    "Live DJ Night",
-    "DJ Set",
-    "Live Band",
-    "Jazz",
-    "Pop",
-    "Rock",
-    "Indie",
-    "Hip Hop",
-    "Afrobeats",
-    "Chart Hits",
-    "Soul",
-    "Funk",
-  ],
-  jazz: ["Jazz"],
-  arcade: ["Arcade"],
-  bowling: ["Bowling"],
-  karaoke: ["Karaoke Bar"],
-  dance: ["Dance Class", "DJ Set", "Dance Floor"],
-  art: ["Art Class", "Art"],
-  pottery: ["Pottery Class"],
-  yoga: ["Yoga Class", "Wellness Experience"],
-  spa: ["Spa", "Wellness Experience", "Hot Tub Experience"],
-  cooking: ["Cooking Class", "Culinary Experience"],
-  wine_tasting: ["Wine Tasting"],
-  cocktail_masterclass: ["Cocktail Masterclass"],
-  theatre: ["Theatre Show", "Theatre"],
-  comedy: ["Comedy Show", "Comedy"],
-  cinema: ["Cinema", "Outdoor Cinema", "Film"],
-  boat: ["Boat Party"],
-  festival: [
-    "Summer Festival",
-    "Street Party",
-    "Food Festival",
-    "Cultural Festival",
-  ],
-  birthday: ["Birthday Party"],
-  hen: ["Hen Party"],
-  stag: ["Stag Party"],
-  corporate: ["Corporate Event"],
-  private: ["Private Hire"],
-  networking: ["Networking Event", "After-Work Drinks"],
-  singles: ["Singles Night", "Speed Dating"],
-  brunchparty: ["Brunch Party", "Bottomless Brunch"],
-  seasonal: ["Seasonal Party", "Halloween", "Christmas", "New Year’s Eve"],
-  party: [
-    "Bottomless Brunch",
-    "Themed Event",
-    "Seasonal Party",
-    "VIP Club",
-    "Nightclub",
-    "Party Bar",
-    "Gay Bar",
-    "Queer Bar",
-    "Drag Show",
-  ],
-  chill: ["Chill Lounge", "Casual", "Casual Meetup"],
-  luxury: ["Luxury", "Fine Dining"],
-  casual: ["Casual Dining", "Casual Meetup", "Walk-ins Welcome"],
-  formal: ["Formal", "Dress To Impress", "Smart Casual"],
-  outdoor: [
-    "Outdoor Seating",
-    "Rooftop Terrace",
-    "Heated Terrace",
-    "Garden Area",
-    "Street Side Tables",
-  ],
-  private_room: ["Private Rooms"],
-  stage: ["Stage"],
-  pets: ["Pet Friendly", "Dog Friendly"],
-  wifi: ["Free Wi-Fi"],
-  day: ["Daytime", "All Day", "Weekend", "Weekday"],
-  evening: ["Evening", "Late Night"],
-  vip: ["VIP Package", "VIP Club", "Guest List"],
-  bengali: ["Bengali Restaurant"],
-  indian: ["Indian Restaurant"],
-  chinese: ["Chinese Restaurant"],
-  italian: ["Italian Restaurant"],
-  mexican: ["Mexican Restaurant"],
-  japanese: ["Japanese Restaurant"],
-  takeaway: ["Takeaway", "Street Food"],
-  hidden: ["Hidden Gem", "Hidden Bar"],
-  trending: ["Trending", "Viral Spot", "New Opening"],
-  area: ["Area", "Neighbourhood", "City", "Region", "Near Me"],
-  live: ["Live Music Bar", "Live DJ Night", "Live Band"],
-  boardgames: ["Board Games", "Quiz Night"],
-  darts: ["Darts"],
-  pool: ["Pool & Snooker"],
-  mini_golf: ["Mini Golf"],
-  immersive: ["Immersive Experience", "Virtual Reality", "Escape Room"],
-  lgbtq: ["LGBTQ+", "Gay Bar", "Queer Bar", "Drag Show"],
-};
-
 function splitIntoSteps(query: string): string[] {
-  const normalized = query
+  // Remove accents
+  const normalizedQuery = query
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // Replace common connectors with a pipe for splitting
+  const splitQuery = normalizedQuery
     .replace(
-      /\b(then|after that|and finally|followed by|next|also|;|&)\b/gi,
+      /\b(then|after that|and finally|followed by|next|also|;|&|and)\b/gi,
       "|"
     )
     .replace(/\.\s+/g, "|");
-  return normalized
+
+  // Split and clean
+  const steps = splitQuery
     .split("|")
     .map((s) => s.trim())
-    .filter((s) => s.length > 3)
-    .filter((s) => !/I['’]?m \d+ years? old/i.test(s))
-    .filter((s) =>
-      /breakfast|lunch|dinner|coffee|cappuccino|bar|restaurant|bengali|pub|café|wine|cocktail|rooftop|halal|dog/i.test(
-        s
-      )
-    )
-    .map((s) => s.replace(/\bI['’]?m \d+ years old\b/gi, "").trim())
+    .filter((s) => s.length > 1) // keep meaningful steps
+    .filter((s) => !/I['’]?m \d+ years? old/i.test(s)) // remove age statements
     .filter(Boolean);
+
+  return steps;
 }
 
 function normalizeText(text: string): string {
@@ -398,10 +276,15 @@ function normalizeText(text: string): string {
 function extractCategoriesFast(step: string): string[] {
   const found = new Set<string>();
   const normalizedStep = normalizeText(step);
-  for (const [syn, cats] of Object.entries(synonymMap)) {
-    const pattern = new RegExp(`\\b${syn.replace("_", " ")}\\b`, "i");
-    if (pattern.test(normalizedStep)) cats.forEach((c) => found.add(c));
+
+  for (const category of allCategories) {
+    const normalizedCat = normalizeText(category);
+    const pattern = new RegExp(`\\b${normalizedCat}\\b`, "i");
+    if (pattern.test(normalizedStep)) {
+      found.add(category);
+    }
   }
+
   return Array.from(found);
 }
 
@@ -627,13 +510,17 @@ export async function POST(req: NextRequest) {
           categories = ["Unidentified"];
         }
 
-        const hasRestaurantCategory = categories.some((c) =>
-          skipGoogleCategories.has(c.trim())
-        );
-
         let venues: GooglePlaceResultOutput[] | undefined = undefined;
+        const normalizeCategory = (cat: string) =>
+          cat.trim().toLowerCase().replace(/s$/, "");
 
-        if (!hasRestaurantCategory) {
+        const normalizedCategories = categories.map(normalizeCategory);
+
+        if (
+          !categories ||
+          categories.length === 0 ||
+          normalizedCategories.includes("unidentified")
+        ) {
           try {
             const results = await searchGooglePlacesLeeds(cleanedText, 6);
             if (results.length > 0) {
@@ -647,7 +534,7 @@ export async function POST(req: NextRequest) {
                 logo: r.icon ?? undefined,
                 pricing: getPriceRange(r.price_level),
                 openStatus: r.opening_hours?.open_now ? "Open" : "Closed",
-                phone: r.formatted_phone_number ?? undefined,
+                phone: r.formatted_phone_number ?? null,
                 rating: r.rating ?? null,
                 reviews: r.user_ratings_total ?? null,
                 map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -655,7 +542,9 @@ export async function POST(req: NextRequest) {
                 )}`,
               }));
             }
-          } catch {}
+          } catch (err) {
+            console.error("Google Places API error:", err);
+          }
         }
 
         let paragraph: string;
@@ -663,11 +552,12 @@ export async function POST(req: NextRequest) {
         if (venues && venues.length > 0) {
           paragraph = generateParagraph(cleanedText);
         } else if (categories && categories[0] !== "Unidentified") {
-          paragraph = `You might be interested in ${categories.join(
+          paragraph = `A ${categories.join(
             ", "
-          )}, but we couldn't find a venue for this step.`;
+          )} could be a great choice for your visit.`;
         } else {
-          paragraph = "Sorry, no venues found.";
+          paragraph =
+            "A place matching your preferences could be a great choice for your visit.";
         }
 
         return {
