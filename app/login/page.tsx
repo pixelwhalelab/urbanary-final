@@ -39,7 +39,7 @@ const LoginPage = () => {
     <>
       {/* Header */}
       <NavigationHeader />
-      <div className="bg-[#f7f7f7] px-4 py-15 items-center justify-center flex text-black appearance-none">
+      <div className="bg-[#f7f7f7] bg-[url('/assets/slider.jpg')] bg-cover bg-center px-4 py-15 items-center justify-center flex text-black appearance-none">
         <div className="w-lg px-4 py-10 bg-white rounded-lg justify-center">
           <p className="text-center text-2xl sm:text-2xl md:text-4xl font-semibold font-montserrat">
             Welcome Back

@@ -524,23 +524,36 @@ export async function POST(req: NextRequest) {
           try {
             const results = await searchGooglePlacesLeeds(cleanedText, 6);
             if (results.length > 0) {
-              venues = results.map((r) => ({
-                name: r.name,
-                description: generateFriendlyDescription(r.name),
-                category: formatCategory(r.types),
-                image: r.photos?.[0]?.photo_reference
-                  ? getPhotoUrl(r.photos[0].photo_reference)
-                  : null,
-                logo: r.icon ?? undefined,
-                pricing: getPriceRange(r.price_level),
-                openStatus: r.opening_hours?.open_now ? "Open" : "Closed",
-                phone: r.formatted_phone_number ?? null,
-                rating: r.rating ?? null,
-                reviews: r.user_ratings_total ?? null,
-                map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  `${r.name}, ${r.formatted_address}`
-                )}`,
-              }));
+              const filteredResults = results.filter((r) => {
+                const types = r.types?.map((t) => t.toLowerCase()) || [];
+                return (
+                  (types.includes("bar") || types.includes("night_club")) &&
+                  !types.includes("spa") &&
+                  !types.includes("sauna") &&
+                  !r.name.toLowerCase().includes("sauna") &&
+                  !r.name.toLowerCase().includes("spa")
+                );
+              });
+
+              if (filteredResults.length > 0) {
+                venues = filteredResults.map((r) => ({
+                  name: r.name,
+                  description: generateFriendlyDescription(r.name),
+                  category: formatCategory(r.types),
+                  image: r.photos?.[0]?.photo_reference
+                    ? getPhotoUrl(r.photos[0].photo_reference)
+                    : null,
+                  logo: r.icon ?? undefined,
+                  pricing: getPriceRange(r.price_level),
+                  openStatus: r.opening_hours?.open_now ? "Open" : "Closed",
+                  phone: r.formatted_phone_number ?? null,
+                  rating: r.rating ?? null,
+                  reviews: r.user_ratings_total ?? null,
+                  map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${r.name}, ${r.formatted_address}`
+                  )}`,
+                }));
+              }
             }
           } catch (err) {
             console.error("Google Places API error:", err);

@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import NavigationBarMobile from "@/components/NavigationBarMobile";
 import NavigationHeader from "@/components/NavigationHeader";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import Image from 'next/image';
-
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const SignupPage = () => {
+  const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [phone, setPhone] = useState("");
@@ -23,6 +25,37 @@ const SignupPage = () => {
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, dob, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.message || "Signup failed");
+        setLoading(false);
+        return;
+      }
+
+      router.push(data.redirectUrl || "/verify-email");
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateDob = (date: string) => {
     const birthDate = new Date(date);
@@ -66,7 +99,7 @@ const SignupPage = () => {
     <>
       {/* Header */}
       <NavigationHeader />
-      <div className="bg-[#f7f7f7] px-4 py-15 items-center justify-center flex text-black appearance-none">
+      <div className="bg-[#f7f7f7] bg-[url('/assets/slider.jpg')] bg-cover bg-center px-4 py-15 items-center justify-center flex text-black appearance-none">
         <div className="w-lg px-4 py-10 bg-white rounded-lg justify-center">
           <p className="text-center text-2xl sm:text-2xl md:text-4xl font-semibold font-montserrat">
             Welcome
@@ -74,7 +107,7 @@ const SignupPage = () => {
           <p className="text-center text-lg font-montserrat mt-1">
             Signup to create your account.
           </p>
-          <form className="space-y-4 mt-3 px-4">
+          <form className="space-y-4 mt-3 px-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Full Name
@@ -82,6 +115,8 @@ const SignupPage = () => {
               <input
                 name="name"
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full mt-1 px-3 py-2 border border-gray-300 rounded"
               />
             </div>
@@ -227,22 +262,36 @@ const SignupPage = () => {
                 </div>
               </div>
             </div>
+            {errorMsg && (
+              <p className="text-white bg-red-600 p-2 rounded text-center font-semibold">
+                Error : {errorMsg}
+              </p>
+            )}
 
             <button
               type="submit"
-              disabled={!isValid}
-              className={`w-full text-white font-semibold py-3 px-4 rounded transition ${
-                isValid
+              disabled={!isValid || loading}
+              className={`w-full text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2 ${
+                isValid && !loading
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}
             >
-              Signup
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  Signing up...
+                </>
+              ) : (
+                "Signup"
+              )}
             </button>
 
             <p className="text-black text-center">
               Already have an account?{" "}
-              <Link href="/login" className="text-urbanary font-semibold">Login</Link>
+              <Link href="/login" className="text-urbanary font-semibold">
+                Login
+              </Link>
             </p>
           </form>
         </div>

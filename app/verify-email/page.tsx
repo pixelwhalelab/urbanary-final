@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import Footer from "@/components/Footer";
 import NavigationHeader from "@/components/NavigationHeader";
 import Image from 'next/image';
+import Link from "next/link";
 
 
 interface OtpInputProps {
@@ -87,7 +88,7 @@ const VerifyEmailPage = () => {
     <>
       {/* Header */}
       <NavigationHeader />
-      <div className="bg-[#f7f7f7] px-4 py-15 items-center justify-center flex text-black appearance-none">
+      <div className="bg-[#f7f7f7] bg-[url('/assets/slider.jpg')] bg-cover bg-center px-4 py-15 items-center justify-center flex text-black appearance-none">
         <div className="w-lg px-4 py-10 bg-white rounded-lg justify-center">
           <p className="text-center text-2xl sm:text-2xl md:text-4xl font-semibold font-montserrat">
             Verify Your Email
@@ -146,7 +147,7 @@ const VerifyEmailPage = () => {
             </button>
             <p className="text-black text-center">
               Didn’t receive the verification email?{" "}
-              <span className="text-urbanary font-semibold">Resend it</span>
+              <Link href="/resend-verification-email" className="text-urbanary font-semibold">Resend it</Link>
             </p>
           </form>
         </div>
