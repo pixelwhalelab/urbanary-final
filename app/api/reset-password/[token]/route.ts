@@ -5,9 +5,12 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(req: NextRequest, context: any) {
   try {
-    const { params } = context;
-    const { token } = params;
+    const params = context?.params; 
+    const token = params?.token;
 
+    if (!token) {
+      return NextResponse.json({ message: "Token is required" }, { status: 400 });
+    }
     const { password } = await req.json();
     if (!password) {
       return NextResponse.json(
