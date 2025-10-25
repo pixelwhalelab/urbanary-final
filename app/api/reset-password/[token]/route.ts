@@ -5,10 +5,10 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { token: string } }
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { token } = params;
+    const { token } = await context.params;
 
     if (!token) {
       return NextResponse.json({ message: "Token is required" }, { status: 400 });
