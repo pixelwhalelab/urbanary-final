@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
 export async function PATCH(
-  req: Request,
-  context: { params: { token: string } }
+  req: NextRequest,
+  { params }: { params: { token: string } } 
 ) {
   try {
-    const { token } = await context.params;
+    const { token } = params;
 
     const { password } = await req.json();
     if (!password) {
