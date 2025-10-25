@@ -3,9 +3,11 @@ import db from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
-export async function PATCH(req: NextRequest, context?: any) {
+export async function PATCH(req: NextRequest) {
   try {
-    const token = context?.params?.token;
+    const segments = req.nextUrl.pathname.split('/');
+    const token = segments[segments.length - 1]; 
+
     if (!token) {
       return NextResponse.json({ message: "Token is required" }, { status: 400 });
     }
