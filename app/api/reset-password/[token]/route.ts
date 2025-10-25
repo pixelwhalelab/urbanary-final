@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Record<string, string> } 
+  context: any 
 ) {
   try {
     const { params } = context; 
