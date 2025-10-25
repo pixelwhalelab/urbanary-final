@@ -3,14 +3,16 @@ import db from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
-export async function PATCH(req: NextRequest) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { token: string } }
+) {
   try {
-    const token = req.nextUrl.pathname.split("/").pop();
+    const { token } = params;
 
     if (!token) {
       return NextResponse.json({ message: "Token is required" }, { status: 400 });
     }
-
     const { password } = await req.json();
     if (!password) {
       return NextResponse.json(
