@@ -5,9 +5,10 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Record<string, string> } 
+  context: { params: Record<string, string> } 
 ) {
   try {
+    const { params } = context; 
     const { token } = params;
 
     const { password } = await req.json();
