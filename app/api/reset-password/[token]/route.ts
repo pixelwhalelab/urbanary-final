@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { token: string } } 
+  { params }: { params: Record<string, string> } 
 ) {
   try {
     const { token } = params;
