@@ -5,8 +5,7 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(req: NextRequest) {
   try {
-    const segments = req.nextUrl.pathname.split('/');
-    const token = segments[segments.length - 1]; 
+    const token = req.nextUrl.pathname.split("/").pop();
 
     if (!token) {
       return NextResponse.json({ message: "Token is required" }, { status: 400 });
