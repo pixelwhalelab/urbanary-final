@@ -2,22 +2,38 @@
 import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import NavigationHeader from "@/components/NavigationHeader";
-import { Eye, EyeOff } from "lucide-react";
-import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 
+import { useAuth } from "@/app/hooks/useAuth";
 
 const ResetPasswordPage = () => {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const path = usePathname();
+  const token = path.split("/").pop();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [loadingState, setLoadingState] = useState(false);
 
   const isMinLength = password.length >= 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/search");
+    }
+  }, [user, loading, router]);
 
   const isPasswordValid =
     isMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
@@ -33,6 +49,51 @@ const ResetPasswordPage = () => {
     return () => clearTimeout(timer);
   }, [password, isTyping]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return setErrorMsg("Invalid reset token.");
+
+    setLoadingState(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch(`/api/reset-password/${token}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return setErrorMsg(data.message || "Failed to reset password.");
+      }
+
+      let counter = 5;
+      setSuccessMsg(`${data.message} Redirecting in ${counter}s...`);
+      const interval = setInterval(() => {
+        counter--;
+        setSuccessMsg(`${data.message} Redirecting in ${counter}s...`);
+        if (counter === 0) {
+          clearInterval(interval);
+          router.push(data.redirectUrl || "/login");
+        }
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Something went wrong. Please try again.");
+    } finally {
+      setLoadingState(false);
+    }
+  };
+
+  if (loading || user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin w-12 h-12 text-urbanary" />
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Header */}
@@ -47,7 +108,7 @@ const ResetPasswordPage = () => {
             and matches in both fields.
           </p>
 
-          <form className="space-y-4 mt-3 px-4">
+          <form className="space-y-4 mt-3 px-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Password
@@ -103,7 +164,6 @@ const ResetPasswordPage = () => {
               </div>
             </div>
 
-
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Confirm Password
@@ -136,16 +196,27 @@ const ResetPasswordPage = () => {
               )}
             </div>
 
+            {errorMsg && (
+              <p className="text-white bg-red-600 p-2 rounded text-center font-semibold">
+                {errorMsg}
+              </p>
+            )}
+            {successMsg && (
+              <p className="text-white bg-green-600 p-2 rounded text-center font-semibold">
+                {successMsg}
+              </p>
+            )}
+
             <button
               type="submit"
-              disabled={!isValid}
+              disabled={!isValid || loading}
               className={`w-full text-white font-semibold py-3 px-4 rounded transition ${
-                isValid
+                isValid && !loading
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}
             >
-              Continue
+              {loading ? "Processing..." : "Reset Password"}
             </button>
           </form>
         </div>

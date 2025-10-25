@@ -1,10 +1,12 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import NavigationHeader from "@/components/NavigationHeader";
-import Image from 'next/image';
+import Image from "next/image";
 import Link from "next/link";
-
+import { Loader2 } from "lucide-react";
+import { useAuth } from "@/app/hooks/useAuth";
 
 interface OtpInputProps {
   length?: number;
@@ -78,11 +80,116 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, onChangeOtp }) => {
 };
 
 const VerifyEmailPage = () => {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [otp, setOtp] = useState("");
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValid = isEmailValid && otp.length === 6;
+  const [loadingState, setLoadingState] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/search");
+    }
+  }, [user, loading, router]);
+
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoadingState(true);
+
+    try {
+      const res = await fetch("/api/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        let counter = 5;
+        setErrorMsg(`Email verified — redirecting to login in ${counter}s...`);
+        const interval = setInterval(() => {
+          counter--;
+          setErrorMsg(
+            `Email verified — redirecting to login in ${counter}s...`
+          );
+          if (counter === 0) {
+            clearInterval(interval);
+            router.push(data.redirectUrl || "/login");
+          }
+        }, 1000);
+      } else {
+        let counter: number;
+        switch (res.status) {
+          case 404:
+            counter = 5;
+            setErrorMsg(
+              `${
+                data.message || "Email not registered"
+              } — redirecting to signup in ${counter}s...`
+            );
+            const interval404 = setInterval(() => {
+              counter--;
+              setErrorMsg(
+                `${
+                  data.message || "Email not registered"
+                } — redirecting to signup in ${counter}s...`
+              );
+              if (counter === 0) {
+                clearInterval(interval404);
+                router.push("/signup");
+              }
+            }, 1000);
+            break;
+
+          case 410:
+            counter = 5;
+            setErrorMsg(
+              `${
+                data.message || "OTP expired"
+              } — redirecting to resend verification in ${counter}s...`
+            );
+            const interval410 = setInterval(() => {
+              counter--;
+              setErrorMsg(
+                `${
+                  data.message || "OTP expired"
+                } — redirecting to resend verification in ${counter}s...`
+              );
+              if (counter === 0) {
+                clearInterval(interval410);
+                router.push("/resend-verification-email");
+              }
+            }, 1000);
+            break;
+
+          case 400:
+            setErrorMsg(data.message || "Invalid OTP.");
+            break;
+
+          default:
+            setErrorMsg(data.message || "Something went wrong.");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Server error. Please try again later.");
+    } finally {
+      setLoadingState(false);
+    }
+  };
+  if (loading || user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin w-12 h-12 text-urbanary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -99,7 +206,7 @@ const VerifyEmailPage = () => {
             If you don’t see the email in your inbox, please check your{" "}
             <strong>junk</strong> or <strong>spam</strong> folder.
           </p>
-          <form className="space-y-4 mt-3 px-4">
+          <form className="space-y-4 mt-3 px-4" onSubmit={handleVerifyEmail}>
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -133,21 +240,44 @@ const VerifyEmailPage = () => {
                 </span>
               )}
             </div>
+            {errorMsg && (
+              <p
+                className={`p-2 rounded text-center font-semibold ${
+                  errorMsg.includes("Email verified")
+                    ? "bg-green-600 text-white"
+                    : "bg-red-600 text-white"
+                }`}
+              >
+                {errorMsg}
+              </p>
+            )}
 
             <button
               type="submit"
-              disabled={!isValid}
-              className={`w-full text-white font-semibold py-3 px-4 rounded transition ${
-                isValid
+              disabled={!isValid || loadingState}
+              className={`w-full text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2 ${
+                isValid && !loadingState
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}
             >
-              Continue
+              {loadingState ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify Email"
+              )}
             </button>
             <p className="text-black text-center">
               Didn’t receive the verification email?{" "}
-              <Link href="/resend-verification-email" className="text-urbanary font-semibold">Resend it</Link>
+              <Link
+                href="/resend-verification-email"
+                className="text-urbanary font-semibold"
+              >
+                Resend it
+              </Link>
             </p>
           </form>
         </div>

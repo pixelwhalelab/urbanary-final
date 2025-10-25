@@ -7,9 +7,12 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/hooks/useAuth";
 
 const SignupPage = () => {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -25,13 +28,19 @@ const SignupPage = () => {
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const [isTyping, setIsTyping] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loadingSpin, setLoadingSpin] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/search");
+    }
+  }, [user, loading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
-    setLoading(true);
+    setLoadingSpin(true);
 
     try {
       const res = await fetch("/api/signup", {
@@ -43,8 +52,29 @@ const SignupPage = () => {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.message === "Email already registered") {
+          let counter = 5;
+          setErrorMsg(
+            `Email already registered — redirecting to login in ${counter}s...`
+          );
+          setLoadingSpin(false);
+
+          const interval = setInterval(() => {
+            counter--;
+            setErrorMsg(
+              `Email already registered — redirecting to login in ${counter}s...`
+            );
+            if (counter === 0) {
+              clearInterval(interval);
+              router.push("/login");
+            }
+          }, 1000);
+
+          return;
+        }
+
         setErrorMsg(data.message || "Signup failed");
-        setLoading(false);
+        setLoadingSpin(false);
         return;
       }
 
@@ -53,7 +83,7 @@ const SignupPage = () => {
       console.error(err);
       setErrorMsg("Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
+      setLoadingSpin(false);
     }
   };
 
@@ -94,6 +124,14 @@ const SignupPage = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (loading || user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin w-12 h-12 text-urbanary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -270,14 +308,14 @@ const SignupPage = () => {
 
             <button
               type="submit"
-              disabled={!isValid || loading}
+              disabled={!isValid || loadingSpin}
               className={`w-full text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2 ${
-                isValid && !loading
+                isValid && !loadingSpin
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}
             >
-              {loading ? (
+              {loadingSpin ? (
                 <>
                   <Loader2 className="animate-spin h-5 w-5" />
                   Signing up...

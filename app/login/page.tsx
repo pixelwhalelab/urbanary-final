@@ -3,12 +3,16 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import NavigationBarMobile from "@/components/NavigationBarMobile";
 import NavigationHeader from "@/components/NavigationHeader";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import Image from 'next/image';
-
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/hooks/useAuth";
 
 const LoginPage = () => {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [password, setPassword] = useState("");
@@ -20,6 +24,11 @@ const LoginPage = () => {
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const [isTyping, setIsTyping] = useState(false);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [counter, setCounter] = useState(5);
+  const [redirecting, setRedirecting] = useState(false);
+  const [loadingState, setLoadingState] = useState(false);
 
   const isValid =
     isMinLength &&
@@ -30,10 +39,85 @@ const LoginPage = () => {
     isEmailValid;
 
   useEffect(() => {
+    if (!loading && user) {
+      router.push("/search");
+    }
+  }, [user, loading, router]);
+
+  useEffect(() => {
     if (!isTyping) return;
     const timer = setTimeout(() => setIsTyping(false), 3000);
     return () => clearTimeout(timer);
   }, [password, isTyping]);
+
+  useEffect(() => {
+    if (!redirecting) return;
+    if (counter === 0) {
+      router.push("/search");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCounter((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [counter, redirecting, router]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
+    setLoadingState(true);
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.message || "Login failed");
+        return;
+      }
+
+      setSuccessMsg(`Login Successful. Redirecting in ${counter}s...`);
+      setRedirecting(true);
+
+      const interval = setInterval(() => {
+        setCounter((prev) => {
+          if (prev === 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          setSuccessMsg(`Login Successful. Redirecting in ${prev - 1}s...`);
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error("Login error:", err);
+      setErrorMsg("Something went wrong. Please try again.");
+    }finally {
+      setLoadingState(false);
+    }
+  };
+
+  useEffect(() => {
+    if (redirecting && counter > 0) {
+      setSuccessMsg(`Login Successful. Redirecting in ${counter}s...`);
+    }
+  }, [counter, redirecting]);
+
+  if (loading || user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin w-12 h-12 text-urbanary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -47,7 +131,7 @@ const LoginPage = () => {
           <p className="text-center text-lg font-montserrat mt-1">
             Login to manage your account.
           </p>
-          <form className="space-y-4 mt-3 px-4">
+          <form className="space-y-4 mt-3 px-4" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Email
@@ -77,7 +161,12 @@ const LoginPage = () => {
                   </label>
                 </div>
                 <div className="w-1/2 justify-end flex">
-                <Link href="/forgot-password" className="justify-end text-urbanary font-semibold">Forgot Password?</Link>
+                  <Link
+                    href="/forgot-password"
+                    className="justify-end text-urbanary font-semibold"
+                  >
+                    Forgot Password?
+                  </Link>
                 </div>
               </div>
 
@@ -131,21 +220,42 @@ const LoginPage = () => {
               </div>
             </div>
 
+            {errorMsg && (
+              <p className="text-white bg-red-600 p-2 rounded text-center font-semibold">
+                {errorMsg}
+              </p>
+            )}
+            {successMsg && (
+              <p className="text-white bg-green-600 p-2 rounded text-center font-semibold">
+                {successMsg}
+              </p>
+            )}
+
             <button
               type="submit"
-              disabled={!isValid}
-              className={`w-full text-white font-semibold py-3 px-4 rounded transition ${
-                isValid
+              disabled={!isValid || loadingState}
+              className={`w-full text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2 ${
+                isValid && !loadingState
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}
             >
-              Login
+              {loadingState ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
+              
             </button>
 
             <p className="text-black text-center">
               Don't have an account yet?{" "}
-              <Link href="/signup" className="text-urbanary font-semibold">Sign up here</Link>
+              <Link href="/signup" className="text-urbanary font-semibold">
+                Sign up here
+              </Link>
             </p>
           </form>
         </div>

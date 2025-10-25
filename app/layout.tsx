@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
-
+import { AuthProvider } from "./hooks/useAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["100", "200", "300","400", "500", "600", "700", "800", "900"], 
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -28,6 +28,7 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,7 +39,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`}
       >
-        {children}
+        <AuthProvider
+          allowUnauthenticatedPaths={[
+            "/login",
+            "/signup",
+            "/forgot-password",
+            "/verify-email",
+            "/reset-password",
+            "/resend-verification-email",
+          ]}
+        >
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

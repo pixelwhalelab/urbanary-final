@@ -10,7 +10,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
+    "canvas": "^3.2.0",
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.2",
@@ -35,11 +37,12 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/luxon": "^3.7.1",
     "@types/node": "^20",
     "@types/node-fetch": "^2.6.13",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@types/string-similarity": "^4.0.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
