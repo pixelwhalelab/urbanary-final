@@ -3,12 +3,9 @@ import db from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
-export async function PATCH(
-  req: NextRequest,
-  context: any 
-) {
+export async function PATCH(req: NextRequest, context: any) {
   try {
-    const { params } = context; 
+    const { params } = context;
     const { token } = params;
 
     const { password } = await req.json();
