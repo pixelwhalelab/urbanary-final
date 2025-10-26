@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+/*import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
@@ -48,3 +48,4 @@ export async function PATCH(
     return NextResponse.json({ message: "Server error. Please try again later." }, { status: 500 });
   }
 }
+*/

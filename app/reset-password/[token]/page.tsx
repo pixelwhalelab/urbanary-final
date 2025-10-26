@@ -49,7 +49,7 @@ const ResetPasswordPage = () => {
     return () => clearTimeout(timer);
   }, [password, isTyping]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /*const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return setErrorMsg("Invalid reset token.");
 
@@ -93,7 +93,7 @@ const ResetPasswordPage = () => {
       </div>
     );
   }
-
+*/
   return (
     <>
       {/* Header */}
@@ -108,7 +108,7 @@ const ResetPasswordPage = () => {
             and matches in both fields.
           </p>
 
-          <form className="space-y-4 mt-3 px-4" onSubmit={handleSubmit}>
+          <form className="space-y-4 mt-3 px-4"> {/*  onSubmit={handleSubmit} */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Password
