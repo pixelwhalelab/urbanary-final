@@ -52,50 +52,52 @@ const SearchPage = () => {
   const [intro, setIntro] = useState("");
   const [history, setHistory] = useState<string[]>([]);
 
- const handleSearch = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!searchQuery.trim()) return;
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
 
-  setIntro("");
-  setLoading(true);
-  setHistory((prev) => [searchQuery, ...prev.filter((h) => h !== searchQuery)]);
-
-  try {
-    const res = await fetch("/api/urbanary-ai", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: searchQuery }),
-    });
-
-    const data = await res.json();
-
-    setIntro(data.reply || "");
-
-    // Ensure description is included
-    const venuesWithDesc: Venue[] = (data.venues || []).map((v: any) => ({
-      name: v.name || "",
-      description: v.description || "No description available",
-      image: v.image || "",
-      logo: v.logo || "",
-      pricing: v.pricing || "",
-      openStatus: v.openStatus || "",
-      category: v.category || "",
-      phone: v.phone || "",
-      rating: v.rating || 0,
-      reviews: v.reviews || 0,
-      map: v.map || "",
-    }));
-
-    setVenues(venuesWithDesc);
-  } catch (err) {
-    console.error("Error fetching venues:", err);
-    setVenues([]);
     setIntro("");
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setHistory((prev) => [
+      searchQuery,
+      ...prev.filter((h) => h !== searchQuery),
+    ]);
 
+    try {
+      const res = await fetch("/api/urbanary-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: searchQuery }),
+      });
+
+      const data = await res.json();
+
+      setIntro(data.reply || "");
+
+      // Ensure description is included
+      const venuesWithDesc: Venue[] = (data.venues || []).map((v: any) => ({
+        name: v.name || "",
+        description: v.description || "No description available",
+        image: v.image || "",
+        logo: v.logo || "",
+        pricing: v.pricing || "",
+        openStatus: v.openStatus || "",
+        category: v.category || "",
+        phone: v.phone || "",
+        rating: v.rating || 0,
+        reviews: v.reviews || 0,
+        map: v.map || "",
+      }));
+
+      setVenues(venuesWithDesc);
+    } catch (err) {
+      console.error("Error fetching venues:", err);
+      setVenues([]);
+      setIntro("");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>

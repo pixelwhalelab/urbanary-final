@@ -38,16 +38,12 @@ export async function POST(req: Request) {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-    const avatar = generateInitialAvatar(name);
+    const avatarSvg = generateInitialAvatar(name);
     const randomId = crypto.randomUUID();
     const avatarsDir = path.join(process.cwd(), "public", "avatars");
     if (!fs.existsSync(avatarsDir)) {
       fs.mkdirSync(avatarsDir, { recursive: true });
     }
-
-    const avatarPath = path.join(avatarsDir, `${randomId}.svg`);
-    const base64Data = avatar.replace(/^data:image\/svg\+xml;base64,/, "");
-    fs.writeFileSync(avatarPath, base64Data, "base64");
 
     const newUser = await User.create({
       name,
@@ -57,7 +53,7 @@ export async function POST(req: Request) {
       password: hashedPassword,
       otp,
       otpExpiry,
-      avatar: `/avatars/${randomId}.svg`,
+      avatar: avatarSvg,
     });
     console.log("New User Created:", newUser);
 
