@@ -11,7 +11,7 @@ import { useAuth } from "@/app/hooks/useAuth";
 
 const LoginPage = () => {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -83,7 +83,7 @@ const LoginPage = () => {
         setErrorMsg(data.message || "Login failed");
         return;
       }
-
+      await refreshUser();
       setSuccessMsg(`Login Successful. Redirecting in ${counter}s...`);
       setRedirecting(true);
 
@@ -100,7 +100,7 @@ const LoginPage = () => {
     } catch (err) {
       console.error("Login error:", err);
       setErrorMsg("Something went wrong. Please try again.");
-    }finally {
+    } finally {
       setLoadingState(false);
     }
   };
@@ -248,7 +248,6 @@ const LoginPage = () => {
               ) : (
                 "Login"
               )}
-              
             </button>
 
             <p className="text-black text-center">

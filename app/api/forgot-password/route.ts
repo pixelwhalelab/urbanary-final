@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       { resetToken, resetTokenExpiry }
     );
 
-    const resetUrl = `${LIVE_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${LIVE_URL}/reset-password?token=${resetToken}`;
 
     const client = new MailtrapClient({ token: MAILTRAP_TOKEN });
     await client.send({

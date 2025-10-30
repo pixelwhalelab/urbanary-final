@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { MapPin, CircleUserRound, Search, Menu, X } from "lucide-react";
 import NavigationBarMobile from "./NavigationBarMobile";
 import Link from "next/link";
-import Image from 'next/image';
-
+import { useAuth } from "@/app/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 const NavigationHeader = () => {
+  const { user, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -48,23 +50,49 @@ const NavigationHeader = () => {
         </div>
 
         <div className="w-1/2 p-4 flex items-end justify-end mx-auto">
-          <Link
-            href="/login"
-            className="text-black py-[15px] px-[25px] rounded-lg text-sm font-semibold cursor-pointer hidden md:flex items-center hover:text-urbanary"
-          >
-            <CircleUserRound className="w-5 h-5 mr-1" />
-            Login / Sign Up
-          </Link>
-
+          {loading ? (
+            <div className="hidden md:flex items-center text-sm text-gray-500 px-[25px] py-[15px]">
+              <Loader2 className="animate-spin h-5 w-5" />
+            </div>
+          ) : user ? (
+            <Link
+              href="/dashboard"
+              className="text-black py-[15px] px-[25px] rounded-lg text-sm font-semibold hidden md:flex items-center hover:text-urbanary"
+            >
+              <img
+                src={user.avatar || "/avatars/default.svg"}
+                alt={user.name}
+                className="w-5 h-5 mr-1 rounded-full"
+              />
+              {user.name}
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="text-black py-[15px] px-[25px] rounded-lg text-sm font-semibold hidden md:flex items-center hover:text-urbanary"
+            >
+              <CircleUserRound className="w-5 h-5 mr-1" />
+              Login / Sign Up
+            </Link>
+          )}
           <button className="bg-urbanary text-white py-[15px] px-[25px] rounded-lg text-sm font-semibold cursor-pointer hidden md:flex items-center">
             <MapPin className="w-5 h-5 mr-1" />
             Add Your Business
           </button>
-
           <div className="flex md:hidden space-x-5">
-            <Link href="/login">
-              <CircleUserRound className="w-6 h-6 cursor-pointer text-black" />
-            </Link>
+            {user ? (
+              <Link href="/dashboard">
+                <img
+                  src={user.avatar || "/avatars/default.svg"}
+                  alt={user.name}
+                  className="w-6 h-6 rounded-full cursor-pointer"
+                />
+              </Link>
+            ) : (
+              <Link href="/login">
+                <CircleUserRound className="w-6 h-6 cursor-pointer text-black" />
+              </Link>
+            )}
             <Search className="w-6 h-6 cursor-pointer text-black" />
             <div onClick={toggleMenu}>
               {isMenuOpen ? (

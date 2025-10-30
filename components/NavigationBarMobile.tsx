@@ -2,7 +2,10 @@
 import { useEffect, useState } from "react";
 import { MapPin, X } from "lucide-react";
 import Link from "next/link";
-import Image from 'next/image';
+import Image from "next/image";
+import { useAuth } from "@/app/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 interface NavigationBarMobileProps {
   isOpen: boolean;
@@ -10,8 +13,16 @@ interface NavigationBarMobileProps {
 }
 
 const NavigationBarMobile = ({ isOpen, onClose }: NavigationBarMobileProps) => {
+  const router = useRouter();
+  const { user, refreshUser, loading } = useAuth();
   const [visible, setVisible] = useState(false);
   const [animateIn, setAnimateIn] = useState(false);
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST", credentials: "include" });
+    await refreshUser();
+    router.push("/login");
+    onClose();
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -45,11 +56,11 @@ const NavigationBarMobile = ({ isOpen, onClose }: NavigationBarMobileProps) => {
         <div className="flex py-2 px-3 items-center border-b border-gray-300">
           <div className="w-[70%]">
             <Link href="/">
-            <img
-              src="/logo/logo.png"
-              alt="Urbanary Logo"
-              className="w-[180px]"
-            />
+              <img
+                src="/logo/logo.png"
+                alt="Urbanary Logo"
+                className="w-[180px]"
+              />
             </Link>
           </div>
           <div className="w-[30%] mx-auto flex justify-end h-full">
@@ -76,6 +87,36 @@ const NavigationBarMobile = ({ isOpen, onClose }: NavigationBarMobileProps) => {
           <p className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors">
             Contact
           </p>
+          {loading ? (
+            <div className="hidden md:flex items-center text-sm text-gray-500 px-[25px] py-[15px]">
+              <Loader2 className="animate-spin h-5 w-5" />
+            </div>
+          ) : user ? (
+            <>
+              <p className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors">
+                <Link href="/profile" onClick={onClose}>
+                  Dashboard
+                </Link>
+              </p>
+              <p className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors">
+                <Link href="/profile" onClick={onClose}>
+                  Search History
+                </Link>
+              </p>
+              <p
+                className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors"
+                onClick={handleLogout}
+              >
+                Logout
+              </p>
+            </>
+          ) : (
+            <p className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors">
+              <Link href="/login" onClick={onClose}>
+                Login / Sign Up
+              </Link>
+            </p>
+          )}
 
           <div className="m-3">
             <button className="bg-[#93c6ef] text-blue-900 hover:bg-urbanary hover:text-white py-[15px] px-[25px] rounded-lg text-sm font-semibold text-center cursor-pointer w-full flex items-center justify-center transition-all duration-400 ease-in-out">

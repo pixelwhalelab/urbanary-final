@@ -4,16 +4,14 @@ import Footer from "@/components/Footer";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useParams } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 
 const ResetPasswordPage = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const path = usePathname();
-  const token = path.split("/").pop();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -56,10 +54,10 @@ const ResetPasswordPage = () => {
     setLoadingState(true);
     setErrorMsg("");
     try {
-      const res = await fetch(`/api/reset-password/${token}`, {
+      const res = await fetch(`/api/reset-password`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ token,password }),
       });
 
       const data = await res.json();
@@ -209,14 +207,14 @@ const ResetPasswordPage = () => {
 
             <button
               type="submit"
-              disabled={!isValid || loading}
+              disabled={!isValid || loadingState}
               className={`w-full text-white font-semibold py-3 px-4 rounded transition ${
-                isValid && !loading
+                isValid && !loadingState
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}
             >
-              {loading ? "Processing..." : "Reset Password"}
+              {loadingState ? "Processing..." : "Reset Password"}
             </button>
           </form>
         </div>

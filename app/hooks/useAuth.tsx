@@ -1,5 +1,11 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -25,19 +31,30 @@ interface AuthProviderProps {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children, allowUnauthenticatedPaths = [] }: AuthProviderProps) => {
+export const AuthProvider = ({
+  children,
+  allowUnauthenticatedPaths = [],
+}: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("/api/check-auth", { cache: "no-store", credentials: "include" });
+      const res = await fetch("/api/check-auth", {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
       } else {
-        setUser(null); // just set null, DO NOT redirect here
+        if (res.status === 401) {
+          setUser(null);
+        } else {
+          console.error("Unexpected status:", res.status);
+          setUser(null);
+        }
       }
     } catch (err) {
       console.error("Error fetching user:", err);
@@ -51,21 +68,37 @@ export const AuthProvider = ({ children, allowUnauthenticatedPaths = [] }: AuthP
     fetchUser();
   }, []);
 
-  // ✅ Only redirect after loading finishes
   useEffect(() => {
-    if (!loading && !user) {
-      const pathname = window.location.pathname;
-      const isAllowed = allowUnauthenticatedPaths.some((path) => {
-        const normalizedPath = path.endsWith("/") ? path.slice(0, -1) : path;
-        return pathname === normalizedPath || pathname.startsWith(`${normalizedPath}/`);
-      });
-      if (!isAllowed) {
-        router.push("/login");
-      }
+    if (loading) return;
+
+    const pathname = window.location.pathname;
+
+    const publicPaths = ["/", "/search"];
+    const isPublic = publicPaths.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
+    );
+
+    if (isPublic) return;
+
+    const isUnauthPath = allowUnauthenticatedPaths.some((path) => {
+      const normalizedPath = path.endsWith("/") ? path.slice(0, -1) : path;
+      return (
+        pathname === normalizedPath || pathname.startsWith(`${normalizedPath}/`)
+      );
+    });
+
+    if (!user && !isUnauthPath) {
+      router.push("/login");
+    } else if (user && isUnauthPath) {
+      router.push("/search");
     }
   }, [loading, user, router, allowUnauthenticatedPaths]);
 
-  return <AuthContext.Provider value={{ user, loading, refreshUser: fetchUser }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, refreshUser: fetchUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
