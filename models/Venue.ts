@@ -25,8 +25,9 @@ const VenueSchema = new Schema(
     },
     phone: {
       type: String,
-      required: [true, "Phone number is required"],
+      required: false,
       trim: true,
+      default: "",
     },
     mapLink: {
       type: String,

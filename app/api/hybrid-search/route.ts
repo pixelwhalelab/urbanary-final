@@ -1,35 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import mongoose from "mongoose";
+import db from "@/lib/mongoose";
+import Venue from "@/models/Venue";
 
 const SESSION_CACHE_TTL = 10 * 60 * 1000;
 const GOOGLE_CACHE_TTL = 60 * 60 * 1000;
-
-interface CacheEntry {
-  timestamp: number;
-  steps: StepResult[];
-}
-
-const sessionCache: Record<string, CacheEntry> = {};
-
-interface GooglePlaceCacheEntry {
-  timestamp: number;
-  results: GooglePlaceResult[];
-}
-
 const googleCache: Record<string, GooglePlaceCacheEntry> = {};
-
-interface GooglePlaceResult {
-  name: string;
-  types?: string[];
-  photos?: { photo_reference: string }[];
-  icon?: string;
-  price_level?: number;
-  opening_hours?: { open_now: boolean };
-  formatted_phone_number?: string;
-  rating?: number;
-  user_ratings_total?: number;
-  formatted_address: string;
-}
+const sessionCache: Record<string, CacheEntry> = {};
 
 interface StepResult {
   intent: string;
@@ -44,12 +22,35 @@ interface GooglePlaceResultOutput {
   category: string;
   image: string | null;
   logo?: string;
-  pricing: string;
-  openStatus: string;
+  pricing?: string;
+  openStatus?: string;
   phone?: string | null;
   rating?: number | null;
   reviews?: number | null;
   map: string;
+}
+
+interface GooglePlaceResult {
+  name: string;
+  types?: string[];
+  photos?: { photo_reference: string }[];
+  icon?: string;
+  price_level?: number;
+  opening_hours?: { open_now: boolean };
+  formatted_phone_number?: string;
+  rating?: number;
+  user_ratings_total?: number;
+  formatted_address: string;
+}
+
+interface CacheEntry {
+  timestamp: number;
+  steps: StepResult[];
+}
+
+interface GooglePlaceCacheEntry {
+  timestamp: number;
+  results: GooglePlaceResult[];
 }
 
 const allCategories = [
@@ -360,11 +361,19 @@ function generateParagraph(stepText: string): string {
   }`;
 }
 
-function cleanSessionCache() {
-  const now = Date.now();
-  for (const k in sessionCache)
-    if (now - sessionCache[k].timestamp > SESSION_CACHE_TTL)
-      delete sessionCache[k];
+function getPhotoUrl(photoReference?: string, maxWidth = 400): string | null {
+  if (!photoReference) return null;
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${apiKey}`;
+}
+
+function generateFriendlyDescription(name: string): string {
+  return `${name} is a great place to visit! Perfect for your adventure.`;
+}
+
+function getPriceRange(level?: number): string {
+  if (level === undefined) return "Unknown";
+  return ["Free", "$", "$$", "$$$", "$$$$"][level] || "Unknown";
 }
 
 async function searchGooglePlacesLeeds(
@@ -390,24 +399,246 @@ async function searchGooglePlacesLeeds(
   return results;
 }
 
-function getPhotoUrl(photoReference?: string, maxWidth = 400): string | null {
-  if (!photoReference) return null;
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${apiKey}`;
+function cleanSessionCache() {
+  const now = Date.now();
+  for (const k in sessionCache)
+    if (now - sessionCache[k].timestamp > SESSION_CACHE_TTL)
+      delete sessionCache[k];
 }
 
 function formatCategory(types?: string[]): string {
   return types?.join(", ") || "Unknown";
 }
-function generateFriendlyDescription(name: string): string {
-  return `${name} is a great place to visit! Perfect for your adventure.`;
-}
-function getPriceRange(level?: number): string {
-  if (level === undefined) return "Unknown";
-  return ["Free", "$", "$$", "$$$", "$$$$"][level] || "Unknown";
-}
 
 export async function POST(req: NextRequest) {
+  try {
+    const { query, sessionId } = await req.json();
+    if (!query || !sessionId)
+      return NextResponse.json(
+        { error: "Missing query or sessionId" },
+        { status: 400 }
+      );
+
+    await db;
+    cleanSessionCache();
+
+    const input = query.toLowerCase();
+    const cityRegex = /\b(in|near|around|at|from|to)\s+([a-zA-Z\s]+)\b/;
+    const match = input.match(cityRegex);
+    if (match) {
+      const mentionedCity = match[2].trim().toLowerCase();
+      if (!mentionedCity.includes("leeds")) {
+        return NextResponse.json({
+          success: true,
+          input: query,
+          steps: [
+            {
+              intent: "Location Restricted",
+              paragraph: "Sorry, we currently operate in Leeds only.",
+              categories: [],
+              venues: [],
+            },
+          ],
+          cached: false,
+        });
+      }
+    }
+
+    const cacheKey = `${sessionId}:${query.toLowerCase()}`;
+    const cached = sessionCache[cacheKey];
+    if (cached)
+      return NextResponse.json({
+        success: true,
+        input: query,
+        steps: cached.steps,
+        cached: true,
+      });
+
+    const unnecessaryPhrases = [
+      "go to office",
+      "head to",
+      "visit",
+      "proceed to",
+      "go to",
+      "stop by",
+      "make your way to",
+      "then",
+      "after that",
+      "next",
+      "finally",
+      "and",
+      "also",
+      "at the",
+      "in the",
+      "on the",
+    ];
+
+    let stepsText = splitIntoSteps(query);
+    if (stepsText.length === 0) stepsText = [query];
+
+    const steps: StepResult[] = await Promise.all(
+      stepsText.map(async (stepText, idx) => {
+        let cleanedText = stepText.toLowerCase();
+        for (const phrase of unnecessaryPhrases) {
+          const regex = new RegExp(`\\b${phrase}\\b,?\\s*`, "gi");
+          cleanedText = cleanedText.replace(regex, "");
+        }
+        cleanedText = cleanedText.trim();
+
+        let categories: string[];
+        try {
+          categories = await extractCategoriesHybrid(cleanedText);
+        } catch {
+          categories = ["Unidentified"];
+        }
+
+        let venues: GooglePlaceResultOutput[] | undefined;
+        let paragraph = "";
+
+        const validCategories =
+          categories && categories.length && categories[0] !== "Unidentified";
+
+        if (validCategories) {
+          const mongoVenues = await Venue.aggregate([
+            {
+              $match: {
+                categories: { $in: categories.map((c) => c.toLowerCase()) },
+              },
+            },
+            { $sample: { size: 6 } },
+          ]);
+
+          if (mongoVenues.length > 0) {
+            venues = mongoVenues.map((v) => ({
+              name: v.name,
+              description: v.description,
+              category: v.categories.join(", "),
+              image: v.image,
+              phone: v.phone || null,
+              rating: v.rating || null,
+              reviews: v.reviews || null,
+              map: v.mapLink,
+              ...getOpenStatus(v.hours),
+            }));
+            paragraph = generateParagraph(cleanedText);
+          } else {
+            paragraph = "Sorry, no matched venues found.";
+          }
+        } else {
+          const googleVenues = await fetchFromGoogle(cleanedText);
+
+          if (googleVenues.length > 0) {
+            venues = googleVenues;
+            paragraph = generateParagraph(cleanedText);
+          } else {
+            paragraph = "Sorry, no matched venues found.";
+          }
+        }
+
+        return venues
+          ? {
+              intent: `Visit ${idx + 1}`,
+              paragraph,
+              categories,
+              venues,
+            }
+          : {
+              intent: `Visit ${idx + 1}`,
+              paragraph,
+              categories,
+            };
+      })
+    );
+
+    sessionCache[cacheKey] = { timestamp: Date.now(), steps };
+
+    return NextResponse.json({
+      success: true,
+      input: query,
+      steps,
+      cached: false,
+    });
+  } catch (err) {
+    console.error("POST error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+function getOpenStatus(hours?: any[]) {
+  if (!hours || !Array.isArray(hours)) return {};
+
+  try {
+    const leedsTime = new Date().toLocaleString("en-GB", {
+      timeZone: "Europe/London",
+    });
+    const now = new Date(leedsTime);
+    const currentDay = now.toLocaleString("en-GB", { weekday: "long" });
+    const today = hours.find(
+      (h) => h.day.toLowerCase() === currentDay.toLowerCase()
+    );
+
+    if (!today) return {};
+
+    const [openH, openM] = today.open.split(":").map(Number);
+    const [closeH, closeM] = today.close.split(":").map(Number);
+    const openTime = new Date(now);
+    openTime.setHours(openH, openM, 0);
+    const closeTime = new Date(now);
+    closeTime.setHours(closeH, closeM, 0);
+
+    const isOpen = now >= openTime && now <= closeTime;
+
+    return {
+      openStatus: isOpen ? "Open" : "Closed",
+      open: today.open,
+      close: today.close,
+    };
+  } catch {
+    return {};
+  }
+}
+
+async function fetchFromGoogle(
+  query: string
+): Promise<GooglePlaceResultOutput[]> {
+  try {
+    const results = await searchGooglePlacesLeeds(query, 6);
+    if (!results.length) return [];
+
+    return results.map((r) => ({
+      name: r.name,
+      description: generateFriendlyDescription(r.name),
+      category: formatCategory(r.types),
+      image: r.photos?.[0]?.photo_reference
+        ? getPhotoUrl(r.photos[0].photo_reference)
+        : null,
+      phone: r.formatted_phone_number ?? null,
+      rating: r.rating ?? null,
+      reviews: r.user_ratings_total ?? null,
+      map: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${r.name}, ${r.formatted_address}`
+      )}`,
+      ...getOpenStatusFromGoogle(r),
+    }));
+  } catch (err) {
+    console.error("Google fetch error:", err);
+    return [];
+  }
+}
+
+function getOpenStatusFromGoogle(r: GooglePlaceResult) {
+  try {
+    const isOpen = r.opening_hours?.open_now ?? null;
+    return isOpen !== null ? { openStatus: isOpen ? "Open" : "Closed" } : {};
+  } catch {
+    return {};
+  }
+}
+
+/*export async function POST(req: NextRequest) {
   try {
     const { query, sessionId } = await req.json();
     if (!query || !sessionId)
@@ -593,3 +824,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+*/

@@ -204,7 +204,6 @@ const SearchPage = () => {
   return (
     <>
       {/* Header */}
-      <ComingSoon />
       <NavigationHeader />
 
       {/* Body */}

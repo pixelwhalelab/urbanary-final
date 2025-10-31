@@ -9,14 +9,14 @@ export async function POST(req: Request) {
 
     const { image, name, description, phone, mapLink, categories, rating, reviews, hours } = body;
 
-    if (!image || !name || !description || !phone || !mapLink || !rating || !reviews)
+    if (!image || !name || !description || !mapLink || !rating || !reviews)
       return NextResponse.json({ success: false, message: "All fields required." }, { status: 400 });
 
     const newVenue = await Venue.create({
       image,
       name,
       description,
-      phone,
+      phone: phone || "",
       mapLink,
       categories,
       rating,
