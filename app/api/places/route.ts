@@ -37,7 +37,7 @@ export async function GET(req: Request) {
       const photoRef = p.photos?.[0]?.photo_reference || null;
       const imageUrl = photoRef
         ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${photoRef}&key=${apiKey}`
-        : "/assets/no-image.jpg";
+        : "/assets/default.jpg";
 
       return {
         place_id: p.place_id,
