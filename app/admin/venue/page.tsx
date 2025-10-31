@@ -237,6 +237,7 @@ const VenuePage = () => {
 
   return (
     <>
+      <ComingSoon />
       <NavigationHeader />
       <div className="bg-[#f7f7f7] bg-[url('/assets/slider.jpg')] bg-cover bg-center px-4 py-15 flex justify-center text-black">
         <div className="w-full max-w-2xl bg-white rounded-lg p-8 shadow-lg">

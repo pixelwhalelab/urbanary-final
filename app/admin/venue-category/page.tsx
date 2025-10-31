@@ -62,6 +62,7 @@ const VenueCategoryPage = () => {
 
   return (
     <>
+      <ComingSoon />
       {/* Header */}
       <NavigationHeader />
 

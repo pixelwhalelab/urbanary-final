@@ -41,6 +41,7 @@ export default function Home() {
 
   return (
     <>
+    <ComingSoon />
       {/* Header */}
       <NavigationHeader />
 

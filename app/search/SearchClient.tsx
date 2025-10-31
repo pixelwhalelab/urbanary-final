@@ -203,6 +203,7 @@ const SearchPage = () => {
 
   return (
     <>
+      <ComingSoon />
       {/* Header */}
       <NavigationHeader />
 
