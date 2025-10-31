@@ -16,6 +16,7 @@
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.2",
+    "framer-motion": "^12.23.24",
     "getmac": "^1.4.4",
     "google-auth-library": "^10.4.0",
     "js-cookie": "^3.0.5",

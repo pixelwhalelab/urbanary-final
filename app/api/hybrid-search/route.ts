@@ -242,12 +242,10 @@ const allCategories = [
 ];
 
 function splitIntoSteps(query: string): string[] {
-  // Remove accents
   const normalizedQuery = query
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  // Replace common connectors with a pipe for splitting
   const splitQuery = normalizedQuery
     .replace(
       /\b(then|after that|and finally|followed by|next|also|;|&|and)\b/gi,
@@ -255,12 +253,11 @@ function splitIntoSteps(query: string): string[] {
     )
     .replace(/\.\s+/g, "|");
 
-  // Split and clean
   const steps = splitQuery
     .split("|")
     .map((s) => s.trim())
-    .filter((s) => s.length > 1) // keep meaningful steps
-    .filter((s) => !/I['’]?m \d+ years? old/i.test(s)) // remove age statements
+    .filter((s) => s.length > 1)
+    .filter((s) => !/I['’]?m \d+ years? old/i.test(s))
     .filter(Boolean);
 
   return steps;

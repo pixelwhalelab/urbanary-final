@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import NavigationBarMobile from "@/components/NavigationBarMobile";
 import NavigationHeader from "@/components/NavigationHeader";
@@ -8,8 +9,13 @@ import Image from "next/image";
 import UrbanaryTestimonials from "@/components/UrbanaryTestimonials";
 import FeaturedVenuesHome from "@/components/FeaturedVenuesHome";
 import ComingSoon from "@/components/ComingSoon";
+import { useAuth } from "@/app/hooks/useAuth";
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  const [searchQuery, setSearchQuery] = useState("");
   const placeholders = [
     "Best places to eat in Leeds",
     "Top bars and pubs near you",
@@ -24,6 +30,14 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleHomeSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    if (loading) return;
+
+    router.push(`/search?query=${encodeURIComponent(searchQuery)}`);
+  };
 
   return (
     <>
@@ -46,10 +60,14 @@ export default function Home() {
           </div>
 
           <div className="flex  items-center justify-center mt-10 p-2">
-            <form className="flex flex-col md:flex-row items-stretch max-w-4xl w-full relative border-2 border-[#efefef] bg-white text-[#2b2b2b] transition-all rounded-lg p-2 shadow-[0_0px_0px_10px_rgba(255,255,255,0.2)]">
+            <form
+              onSubmit={handleHomeSearch}
+              className="flex flex-col md:flex-row items-stretch max-w-4xl w-full relative border-2 border-[#efefef] bg-white text-[#2b2b2b] transition-all rounded-lg p-2 shadow-[0_0px_0px_10px_rgba(255,255,255,0.2)]"
+            >
               <input
                 type="text"
                 placeholder={placeholders[index]}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="md:w-[70%] w-full resize-none outline-none bg-transparent text-base px-5 py-4 transition-all scrollbar-none border-1 border-[#efefef] rounded-lg"
               />
 

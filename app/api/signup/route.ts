@@ -13,14 +13,51 @@ const MAILTRAP_TOKEN = process.env.MAILTRAP_TOKEN!;
 const MAIL_FROM_EMAIL = process.env.MAIL_FROM_EMAIL!;
 const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Urbanary";
 
+const CAPTCHA_SECRET =
+  process.env.CAPTCHA_SECRET ||
+  "a3f5b9c27d4e1f8a9c0b6d2fe4a7c1b85f3d2e9ac7b1f0d48e2a9b3cd6f0e1b7";
+const CAPTCHA_COOKIE = "urbanary_captcha";
+
+function verifyCaptcha(
+  cookie: string | undefined,
+  userAnswer: string
+): boolean {
+  if (!cookie || !userAnswer) return false;
+  try {
+    const decoded = Buffer.from(cookie, "base64").toString();
+    const [answer, timestamp, sig] = decoded.split(":");
+    const payload = `${answer}:${timestamp}`;
+    const expectedSig = crypto
+      .createHmac("sha256", CAPTCHA_SECRET)
+      .update(payload)
+      .digest("hex");
+    if (sig !== expectedSig) return false;
+    if (Date.now() - parseInt(timestamp) > 5 * 60 * 1000) return false;
+    return Number(userAnswer) === Number(answer);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, dob, password } = await req.json();
+    const { name, email, phone, dob, password, captcha } = await req.json();
 
-    if (!name || !email || !phone || !dob || !password) {
+    if (!name || !email || !phone || !dob || !password || !captcha) {
       return NextResponse.json(
         { message: "All fields are required" },
         { status: 400 }
+      );
+    }
+
+    const cookie = req.headers
+      .get("cookie")
+      ?.match(new RegExp(`${CAPTCHA_COOKIE}=([^;]+)`))?.[1];
+    const captchaValid = verifyCaptcha(cookie, captcha);
+    if (!captchaValid) {
+      return NextResponse.json(
+        { message: "Invalid or expired captcha" },
+        { status: 403 }
       );
     }
 

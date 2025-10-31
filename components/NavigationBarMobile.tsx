@@ -103,6 +103,11 @@ const NavigationBarMobile = ({ isOpen, onClose }: NavigationBarMobileProps) => {
                   Search History
                 </Link>
               </p>
+              <p className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors">
+                <Link href="/profile" onClick={onClose}>
+                  Saved Venues
+                </Link>
+              </p>
               <p
                 className="cursor-pointer py-2 border-b border-gray-300 px-5 hover:text-urbanary transition-colors"
                 onClick={handleLogout}

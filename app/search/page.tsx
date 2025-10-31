@@ -1,9 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import Footer from "@/components/Footer";
 import NavigationBarMobile from "@/components/NavigationBarMobile";
 import NavigationHeader from "@/components/NavigationHeader";
 import Image from "next/image";
+import { useAuth } from "@/app/hooks/useAuth";
 import {
   Search,
   MapPin,
@@ -46,35 +50,133 @@ const SearchPage = () => {
 
     return () => clearInterval(interval);
   }, []);
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get("query") || "";
+
+  const [searchQuery, setSearchQuery] = useState(queryParam);
+  const [autoSearchDone, setAutoSearchDone] = useState(false);
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(false);
   const [intro, setIntro] = useState("");
   const [history, setHistory] = useState<string[]>([]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  const hasRunRef = useRef(false);
 
+  const [randomLine, setRandomLine] = useState<string | null>(null);
+
+  const lines = [
+    "Step into the flavor of your city — from cozy cafés and lively eateries to hidden gems waiting to be discovered. Find new spots to eat, unwind, and make every outing special.",
+    "Looking for something different? Discover restaurants, venues, and experiences that match your vibe. Whether it’s brunch with friends or dinner for two, your next favorite place is just around the corner.",
+    "Taste, explore, and connect with your city like never before. Find local favorites, trending hangouts, and unique venues that turn everyday moments into memorable experiences.",
+    "Explore your city effortlessly — uncover handpicked restaurants, buzzing venues, and hidden gems made for food lovers, explorers, and everyone in between.",
+    "From coffee runs to dinner dates — explore the heart of your city one bite, one place, and one memory at a time.",
+    "Discover where locals love to eat, relax, and celebrate. Your next favorite restaurant or hidden spot might be closer than you think.",
+    "Craving something new? Explore trending eateries, charming spots, and local favorites that bring your city’s flavor to life.",
+    "Find the perfect place for every mood — from quiet brunch corners to vibrant night-out destinations, your city has it all.",
+    "Uncover the spirit of your city through food, culture, and connection. Every search leads to a new experience worth sharing.",
+    "Eat, explore, and enjoy — discover the restaurants, venues, and spaces that make your city truly unforgettable.",
+  ];
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * lines.length);
+    setRandomLine(lines[randomIndex]);
+  }, []);
+
+  useEffect(() => {
+    if (user) return;
+    const storedRaw = localStorage.getItem("urbanary_free_searches");
+    const stored = storedRaw ? JSON.parse(storedRaw) : null;
+    const now = Date.now();
+    const sixMonths = 1000 * 60 * 60 * 24 * 182;
+
+    if (stored && stored.count >= 5 && now - stored.timestamp < sixMonths) {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!queryParam || autoSearchDone || hasRunRef.current) return;
+
+    hasRunRef.current = true;
+
+    const runSearch = async () => {
+      await handleSearch(undefined, queryParam);
+      setAutoSearchDone(true);
+    };
+
+    runSearch();
+  }, [queryParam]);
+
+  const handleSearch = async (e?: React.FormEvent, queryText?: string) => {
+    if (e) e.preventDefault();
+
+    const query = queryText || searchQuery;
+    if (!query.trim()) return;
+    if (loadingSearch) return;
+
+    if (!user) {
+      try {
+        const storedRaw = localStorage.getItem("urbanary_free_searches");
+        const stored = storedRaw ? JSON.parse(storedRaw) : null;
+
+        const now = Date.now();
+        const sixMonths = 1000 * 60 * 60 * 24 * 182;
+
+        if (
+          !stored ||
+          !stored.timestamp ||
+          now - stored.timestamp > sixMonths
+        ) {
+          localStorage.setItem(
+            "urbanary_free_searches",
+            JSON.stringify({ count: 1, timestamp: now })
+          );
+          console.log("Started new 6-month free search counter: 1");
+        } else {
+          const currentCount = stored.count || 0;
+
+          if (currentCount >= 5) {
+            setVenues([]);
+            setIntro("");
+            router.replace("/login");
+            return;
+          }
+
+          localStorage.setItem(
+            "urbanary_free_searches",
+            JSON.stringify({
+              count: currentCount + 1,
+              timestamp: stored.timestamp,
+            })
+          );
+
+          console.log(`Free search #${currentCount + 1} recorded`);
+        }
+      } catch (err) {
+        console.error("Error managing free searches:", err);
+        localStorage.setItem(
+          "urbanary_free_searches",
+          JSON.stringify({ count: 1, timestamp: Date.now() })
+        );
+      }
+    }
     setIntro("");
-    setLoading(true);
-    setHistory((prev) => [
-      searchQuery,
-      ...prev.filter((h) => h !== searchQuery),
-    ]);
+    setLoadingSearch(true);
+    setHistory((prev) => [query, ...prev.filter((h) => h !== query)]);
 
     try {
       const res = await fetch("/api/urbanary-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: searchQuery }),
+        body: JSON.stringify({ message: query }),
       });
 
       const data = await res.json();
 
       setIntro(data.reply || "");
 
-      // Ensure description is included
       const venuesWithDesc: Venue[] = (data.venues || []).map((v: any) => ({
         name: v.name || "",
         description: v.description || "No description available",
@@ -95,7 +197,7 @@ const SearchPage = () => {
       setVenues([]);
       setIntro("");
     } finally {
-      setLoading(false);
+      setLoadingSearch(false);
     }
   };
 
@@ -177,9 +279,9 @@ const SearchPage = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loadingSearch}
               className={`w-full md:w-auto mt-2 md:mt-0 md:ml-2 px-5 py-4 rounded-lg cursor-pointer bg-urbanary font-semibold text-white flex items-center justify-center whitespace-nowrap ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
+                loadingSearch ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               <Search className="w-5 h-5 mr-2" /> Ask Urbanary
@@ -191,37 +293,79 @@ const SearchPage = () => {
         <div className="bg-white max-w-6xl mx-auto py-20 mt-25 md:mt-0">
           <div className="flex flex-col md:flex-row w-full gap-4">
             {/* Left 30% */}
-            <div className="w-full md:w-[30%] ">
-              <div className="block border-1 border-gray-400 rounded p-4 m-2">
-                <p className="uppercase text-black font-montserrat font-bold mb-3 text-sm">
-                  Search History
-                </p>
-                <span className="block px-4 py-3 text-sm bg-urbanary text-white rounded w-full text-center cursor-pointer">
-                  Best pizza place in Leeds
-                </span>
-                <div className="space-y-2 mt-3">
-                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full text-center cursor-pointer">
-                    Best pizza place in Leeds
+            <div className="hidden lg:block w-full md:w-[30%]">
+              <div className="border border-gray-300 rounded-xl p-4 m-2 h-[320px] flex flex-col">
+                <div className="flex items-center justify-between px-4 py-3 text-sm bg-urbanary text-white rounded w-full mb-3">
+                  <p className="font-semibold">Search History</p>
+                  <button
+                    className={`text-xs cursor-pointer px-2 py-1 rounded transition 
+    ${
+      user
+        ? "text-white hover:text-gray-200"
+        : "text-gray-300 cursor-not-allowed opacity-60"
+    }`}
+                    onClick={() => user && router.push("/search-history")}
+                    disabled={!user}
+                  >
+                    View All
+                  </button>
+                </div>
+
+                <div
+                  className={`relative flex-1 space-y-2 pr-1 custom-scrollbar text-left ${
+                    user ? "overflow-y-auto" : "overflow-hidden"
+                  }`}
+                >
+                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full cursor-pointer">
+                    Best coffee shops near me
                   </span>
-                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full text-center cursor-pointer">
-                    Best pizza place in Leeds
+                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full cursor-pointer">
+                    Live music venues in Leeds
                   </span>
-                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full text-center cursor-pointer">
-                    Best pizza place in Leeds
+                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full cursor-pointer">
+                    Family-friendly restaurants nearby
                   </span>
-                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full text-center cursor-pointer">
-                    Best pizza place in Leeds
+                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full cursor-pointer">
+                    Rooftop bars in Leeds
                   </span>
+                  <span className="block px-4 py-3 text-sm bg-[#f7f7f7] text-black hover:bg-[#93c6ef] hover:text-urbanary rounded w-full cursor-pointer">
+                    Vegan spots around Leeds
+                  </span>
+                  {!user && (
+                    <motion.div
+                      className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <p className="text-gray-800 font-semibold mb-4">
+                        Login / Signup to view your Search History
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => router.push("/login")}
+                          className="px-4 py-2 bg-urbanary text-white text-sm rounded-lg hover:bg-urbanary/90 transition cursor-pointer"
+                        >
+                          Login
+                        </button>
+                        <button
+                          onClick={() => router.push("/signup")}
+                          className="px-4 py-2 bg-white text-urbanary border cursor-pointer border-urbanary text-sm rounded-lg hover:bg-urbanary/10 transition"
+                        >
+                          Signup
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Right 70% */}
             <div className="w-full md:w-[70%] mx-auto rounded px-4 mt-5">
-              {/* Intro paragraph always shows if intro has content */}
               {intro && <p className="text-black mb-5">{intro}</p>}
 
-              {loading ? (
+              {loadingSearch ? (
                 <p className="text-center text-black">Loading venues...</p>
               ) : venues.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,8 +475,14 @@ const SearchPage = () => {
                   ))}
                 </div>
               ) : (
-                // Show this only if not loading and no venues
-                <p className="text-center text-black"></p>
+                <motion.p
+                  className="text-center text-black mt-5 max-w-2xl mx-auto leading-relaxed text-base md:text-lg"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  {randomLine || ""}
+                </motion.p>
               )}
             </div>
           </div>

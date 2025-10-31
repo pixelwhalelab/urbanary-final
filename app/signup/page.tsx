@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import NavigationBarMobile from "@/components/NavigationBarMobile";
 import NavigationHeader from "@/components/NavigationHeader";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,26 @@ const SignupPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [loadingSpin, setLoadingSpin] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [captchaSvg, setCaptchaSvg] = useState("");
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [loadingCaptcha, setLoadingCaptcha] = useState(false);
+
+  const fetchCaptcha = async () => {
+    try {
+      setLoadingCaptcha(true);
+      const res = await fetch("/api/captcha");
+      const data = await res.json();
+      setCaptchaSvg(data.svg);
+    } catch (err) {
+      console.error("Error loading captcha:", err);
+    } finally {
+      setLoadingCaptcha(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCaptcha();
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -46,7 +66,7 @@ const SignupPage = () => {
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, dob, password }),
+        body: JSON.stringify({ name, email, phone, dob, password, captcha: captchaAnswer }),
       });
 
       const data = await res.json();
@@ -75,6 +95,8 @@ const SignupPage = () => {
 
         setErrorMsg(data.message || "Signup failed");
         setLoadingSpin(false);
+        fetchCaptcha();
+        setCaptchaAnswer("");
         return;
       }
 
@@ -300,6 +322,38 @@ const SignupPage = () => {
                 </div>
               </div>
             </div>
+
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Solve the CAPTCHA
+              </label>
+              <div className="flex items-center gap-3">
+                <div
+                  className="border rounded bg-gray-50"
+                  dangerouslySetInnerHTML={{ __html: captchaSvg }}
+                />
+                <button
+                  type="button"
+                  onClick={fetchCaptcha}
+                  className="text-urbanary hover:rotate-180 transition-transform cursor-pointer"
+                >
+                  {loadingCaptcha ? (
+                    <RefreshCw className="animate-spin w-5 h-5" />
+                  ) : (
+                    <RefreshCw className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <input
+                type="text"
+                value={captchaAnswer}
+                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                placeholder="Enter your answer"
+                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+
             {errorMsg && (
               <p className="text-white bg-red-600 p-2 rounded text-center font-semibold">
                 Error : {errorMsg}
@@ -308,9 +362,9 @@ const SignupPage = () => {
 
             <button
               type="submit"
-              disabled={!isValid || loadingSpin}
+              disabled={!isValid || loadingSpin || !captchaAnswer.trim()}
               className={`w-full text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2 ${
-                isValid && !loadingSpin
+                isValid && !loadingSpin && captchaAnswer.trim()
                   ? "bg-urbanary cursor-pointer"
                   : "bg-black opacity-50 cursor-not-allowed"
               }`}

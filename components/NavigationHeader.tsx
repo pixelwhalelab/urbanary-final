@@ -93,7 +93,8 @@ const NavigationHeader = () => {
                 <CircleUserRound className="w-6 h-6 cursor-pointer text-black" />
               </Link>
             )}
-            <Search className="w-6 h-6 cursor-pointer text-black" />
+            <Link href="/search"><Search className="w-6 h-6 cursor-pointer text-black" /></Link>
+            
             <div onClick={toggleMenu}>
               {isMenuOpen ? (
                 <X className="transform rotate-180 cursor-pointer text-black" />
