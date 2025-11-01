@@ -1,18 +1,28 @@
 "use client";
 import { useEffect, useState } from "react";
-import { MapPin, CircleUserRound, Search, Menu, X } from "lucide-react";
+import { MapPin, CircleUserRound, Search, Menu, X, Power } from "lucide-react";
 import NavigationBarMobile from "./NavigationBarMobile";
 import Link from "next/link";
 import { useAuth } from "@/app/hooks/useAuth";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 
 const NavigationHeader = () => {
-  const { user, loading } = useAuth();
+  const router = useRouter();
+  const { user, refreshUser, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
+
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST", credentials: "include" });
+    await refreshUser();
+    router.push("/login");
+    //onClose();
+  };
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,30 +65,33 @@ const NavigationHeader = () => {
               <Loader2 className="animate-spin h-5 w-5" />
             </div>
           ) : user ? (
-            <Link
-              href="/dashboard"
-              className="text-black py-[15px] px-[25px] rounded-lg text-sm font-semibold hidden md:flex items-center hover:text-urbanary"
-            >
-              <img
-                src={user.avatar || "/avatars/default.svg"}
-                alt={user.name}
-                className="w-5 h-5 mr-1 rounded-full"
-              />
-              {user.name}
-            </Link>
+            <>
+              <Link
+                href="/dashboard"
+                className="text-black py-[15px] px-[25px] rounded-lg text-sm font-semibold hidden md:flex items-center hover:text-urbanary"
+              >
+                <img
+                  src={user.avatar || "/avatars/default.svg"}
+                  alt={user.name}
+                  className="w-5 h-5 mr-1 rounded-full"
+                />
+                {user.name}
+              </Link>
+              <button className="bg-urbanary text-white py-[15px] px-[25px] rounded-lg text-sm font-semibold cursor-pointer hidden md:flex items-center" onClick={handleLogout}>
+                <Power className="w-5 h-5 mr-1" />
+                Logout
+              </button>
+            </>
           ) : (
             <Link
               href="/login"
-              className="text-black py-[15px] px-[25px] rounded-lg text-sm font-semibold hidden md:flex items-center hover:text-urbanary"
+              className="text-black py-[15px] pl-[25px] rounded-lg text-sm font-semibold hidden md:flex items-center hover:text-urbanary"
             >
               <CircleUserRound className="w-5 h-5 mr-1" />
               Login / Sign Up
             </Link>
           )}
-          <button className="bg-urbanary text-white py-[15px] px-[25px] rounded-lg text-sm font-semibold cursor-pointer hidden md:flex items-center">
-            <MapPin className="w-5 h-5 mr-1" />
-            Add Your Business
-          </button>
+
           <div className="flex md:hidden space-x-5">
             {user ? (
               <Link href="/dashboard">
@@ -93,8 +106,10 @@ const NavigationHeader = () => {
                 <CircleUserRound className="w-6 h-6 cursor-pointer text-black" />
               </Link>
             )}
-            <Link href="/search"><Search className="w-6 h-6 cursor-pointer text-black" /></Link>
-            
+            <Link href="/search">
+              <Search className="w-6 h-6 cursor-pointer text-black" />
+            </Link>
+
             <div onClick={toggleMenu}>
               {isMenuOpen ? (
                 <X className="transform rotate-180 cursor-pointer text-black" />
